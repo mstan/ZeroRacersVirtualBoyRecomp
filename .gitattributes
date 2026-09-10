@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Preserve upstream license text, including its original whitespace.
+assets/licenses/** -whitespace

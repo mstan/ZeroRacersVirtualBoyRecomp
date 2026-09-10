@@ -3,9 +3,13 @@
 /build*/
 /validation/
 /beetle-vb/
-/vbrecomp/
-/recomp-ui/
+/dist/
+/release-stage/
 *.log
 *.sav
 keybinds.ini
 __pycache__/
+vbrecomp.cfg
+vb_freeze_heartbeat_*.json
+vb_freeze_dump_*.json
+vb_last_run_report.json
