@@ -1,0 +1,146 @@
+[
+  {
+    "frames": 300,
+    "pad": 0
+  },
+  {
+    "frames": 10,
+    "pad": 4096
+  },
+  {
+    "frames": 90,
+    "pad": 0
+  },
+  {
+    "frames": 10,
+    "pad": 4096
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "automatic-pause"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "title"
+  },
+  {
+    "frames": 10,
+    "pad": 4096
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "name-entry"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "mode"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 190,
+    "pad": 0,
+    "label": "machines"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "machine-stats"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "area"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "difficulty"
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0
+  },
+  {
+    "frames": 10,
+    "pad": 4
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "grid"
+  },
+  {
+    "frames": 500,
+    "pad": 0,
+    "label": "ready"
+  },
+  {
+    "frames": 400,
+    "pad": 0,
+    "label": "race-hud"
+  },
+  {
+    "frames": 400,
+    "pad": 4,
+    "label": "npc-traffic"
+  },
+  {
+    "frames": 400,
+    "pad": 4,
+    "label": "lap-hud"
+  },
+  {
+    "frames": 10,
+    "pad": 4096
+  },
+  {
+    "frames": 90,
+    "pad": 0,
+    "label": "give-up"
+  },
+  {
+    "frames": 10,
+    "pad": 4096
+  },
+  {
+    "frames": 190,
+    "pad": 4,
+    "label": "resume"
+  },
+  {
+    "frames": 1000,
+    "pad": 4,
+    "label": "later-race"
+  }
+]

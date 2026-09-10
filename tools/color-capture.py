@@ -33,6 +33,7 @@ def main():
     parser.add_argument('--port', type=int, default=4690)
     parser.add_argument('--package', type=Path)
     parser.add_argument('--enabled', action='store_true')
+    parser.add_argument('--route', type=Path, help='Custom frame/input route; label fields select captures')
     args = parser.parse_args()
     output = args.out.resolve()
     extra = []
@@ -40,8 +41,9 @@ def main():
         extra = install_args(output / 'mods', args.package.resolve())
         extra += ['--enable-mod' if args.enabled else '--disable-mod',
                  'zero-racers.full-color:full-color']
-    route = json.loads((GAME / 'tests/race-route.json').read_text())[:23]
-    route += [{'frames': 100, 'pad': 0} for _ in range(9)]
+    route = json.loads(args.route.read_text()) if args.route else (
+        json.loads((GAME / 'tests/race-route.json').read_text())[:23]
+        + [{'frames': 100, 'pad': 0} for _ in range(9)])
     report = {'runtime_sha256': hashlib.sha256(args.runtime.read_bytes()).hexdigest(),
               'rom_sha256': hashlib.sha256(args.rom.read_bytes()).hexdigest(),
               'enabled': args.enabled, 'frames': []}
@@ -50,9 +52,12 @@ def main():
         for segment in route:
             runner.client.command('set_input', pad=segment['pad'])
             frame = runner.client.run_frames(segment['frames'], timeout=60)
-            if frame not in LABELS:
+            label = segment.get('label') if args.route else LABELS.get(frame)
+            if not label:
                 continue
-            stem = output / f'{frame:04}-{LABELS[frame]}'
+            if not label.replace('-', '').isalnum():
+                raise ValueError('Capture labels must contain only letters, digits or hyphens')
+            stem = output / f'{frame:04}-{label}'
             state = cpu_state(runner.client)
             for eye in (0, 1):
                 runner.client.command('screenshot', path=f'{stem.as_posix()}-raw-{eye}.png', eye=eye)
@@ -62,8 +67,8 @@ def main():
             stem.with_suffix('.vram').write_bytes(runner.memory(0, 0x40000))
             stem.with_suffix('.json').write_text(json.dumps(state, indent=2) + '\n')
             assert cpu_state(runner.client) == state, 'Capture advanced the guest'
-            report['frames'].append({'frame': frame, 'label': LABELS[frame]})
-            print(f'Captured {frame}: {LABELS[frame]}', flush=True)
+            report['frames'].append({'frame': frame, 'label': label})
+            print(f'Captured {frame}: {label}', flush=True)
     (output / 'capture.json').write_text(json.dumps(report, indent=2) + '\n')
 
 

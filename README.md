@@ -176,8 +176,8 @@ The ZIP's `build-info.json` records exact source commits and binary hashes.
 ## Experimental color preview
 
 The color branch adds an optional [wireframe color mod](docs/MODS-AND-COLOR.md):
-cool silver tunnels, colored machines, and HUD/menu accents with exact native
-line and gap preservation. Build this branch, then run `python tools/play-color.py`
+cool silver tunnels, colored machines and NPCs, and dynamic HUD/menu accents with
+exact native line and gap preservation. Build this branch, then run `python tools/play-color.py`
 to open its separate preview profile. This requires the new executable; the
 published 0.0.1 release remains the original red presentation.
 

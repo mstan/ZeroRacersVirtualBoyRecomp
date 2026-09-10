@@ -10,11 +10,11 @@ endif()
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
-    set(_color_package "${CMAKE_CURRENT_BINARY_DIR}/mod-packages/zero-racers-full-color-0.1.0.vbmod")
+    set(_color_package "${CMAKE_CURRENT_BINARY_DIR}/mod-packages/zero-racers-full-color-0.2.0.vbmod")
     add_custom_command(OUTPUT "${_color_package}"
         COMMAND "${Python3_EXECUTABLE}" "${VBRECOMP_ROOT}/tools/pack_mod.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/mods/full-color" "${_color_package}"
-        DEPENDS mods/full-color/manifest.toml mods/full-color/palette.txt mods/full-color/materials.txt
+        DEPENDS mods/full-color/manifest.toml mods/full-color/palette.txt mods/full-color/materials.txt mods/full-color/models.txt
             "${VBRECOMP_ROOT}/tools/pack_mod.py"
         VERBATIM)
     add_custom_target(zero-racers-mods ALL DEPENDS "${_color_package}")

@@ -55,7 +55,7 @@ def main():
             masks.setdefault(key, [0] * 64)[v * 8 + u] = ink
     if not masks:
         raise ValueError('No source artwork was captured')
-    rows = [f'{m} {k} {x} {y} {h:08x} ' + ''.join(map(str, mask))
+    rows = [f'{m} {k} {x} {y} {h:08x} ' + ''.join(f'{ink:x}' for ink in mask)
             for (m, k, x, y, h), mask in sorted(masks.items())]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_bytes(('\n'.join(rows) + '\n').encode('ascii'))

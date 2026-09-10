@@ -7,3 +7,5 @@ yellow ffe36a
 green 70ffa0
 red ff615c
 amber ffac55
+teal 67ffdd
+violet c493ff
