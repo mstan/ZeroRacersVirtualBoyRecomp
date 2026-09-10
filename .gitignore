@@ -1,0 +1,11 @@
+/roms/
+/generated/
+/build*/
+/validation/
+/beetle-vb/
+/vbrecomp/
+/recomp-ui/
+*.log
+*.sav
+keybinds.ini
+__pycache__/
