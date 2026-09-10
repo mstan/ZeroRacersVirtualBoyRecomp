@@ -1,0 +1,38 @@
+format_version = 1
+id = "zero-racers.full-color"
+version = "0.1.0"
+name = "Zero Racers Full Color"
+author = "Zero Racers Recomp contributors"
+description = "Cool silver tunnels and F-Zero-inspired machine and interface colors, preserving native wireframes."
+license = "MIT"
+
+[[target]]
+game_id = "zero-racers"
+rom_sha256 = "47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7"
+
+[[feature]]
+id = "full-color"
+name = "Wireframe color"
+description = "Recolor native lines and artwork while preserving black gaps, depth and stereo geometry."
+group = "Video"
+channel = "experimental"
+default_enabled = false
+
+[[plugin]]
+feature = "full-color"
+id = "zero-racers.full-color"
+
+[[option]]
+feature = "full-color"
+id = "track_tone"
+label = "Tunnel tone"
+type = "choice"
+default = "cool"
+
+[[option.choice]]
+value = "cool"
+label = "Cool silver"
+
+[[option.choice]]
+value = "neutral"
+label = "Neutral silver"

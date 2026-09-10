@@ -1,0 +1,220 @@
+{
+  "passed": true,
+  "rom_sha256": "47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7",
+  "disabled_runtime": "56d20c04433a012a1339c830233f5edd6c7f998d2a96eaf337d7a951999015b2",
+  "enabled_runtime": "a244c215214a56612d8f7e2bb602c38240576b4ef276a9bb11cbf4c54f4aaa86",
+  "checkpoints": [
+    {
+      "frame": 500,
+      "label": "automatic-pause",
+      "recolored_pixels": [
+        512,
+        512
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 600,
+      "label": "title",
+      "recolored_pixels": [
+        5717,
+        5812
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 700,
+      "label": "name-entry",
+      "recolored_pixels": [
+        7318,
+        7436
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 800,
+      "label": "mode",
+      "recolored_pixels": [
+        8763,
+        8789
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 1000,
+      "label": "machines",
+      "recolored_pixels": [
+        3304,
+        3235
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 1100,
+      "label": "machine-stats",
+      "recolored_pixels": [
+        12481,
+        12399
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 1200,
+      "label": "area",
+      "recolored_pixels": [
+        7512,
+        6946
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 1300,
+      "label": "difficulty",
+      "recolored_pixels": [
+        7565,
+        6984
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 1500,
+      "label": "grid",
+      "recolored_pixels": [
+        6565,
+        6566
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 1800,
+      "label": "camera",
+      "recolored_pixels": [
+        11001,
+        11064
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 2000,
+      "label": "ready",
+      "recolored_pixels": [
+        11636,
+        11711
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 2200,
+      "label": "go",
+      "recolored_pixels": [
+        9776,
+        9802
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 2400,
+      "label": "hud",
+      "recolored_pixels": [
+        9152,
+        9232
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    }
+  ],
+  "capture_manifest_sha256": [
+    "d3d37fef14929e345e9214db7d9ea4cdf03d167ce4f256567d95ae96a7207148",
+    "9436c7a5c9c4fd4525a657d286e0a72ef1638fadd29c2629595e722a60f50809"
+  ]
+}

@@ -1,0 +1,9 @@
+track ddeaff
+white f2f6ff
+cyan 66ddff
+selection ffd65c
+blue 599aff
+yellow ffe36a
+green 70ffa0
+red ff615c
+amber ffac55

@@ -173,6 +173,14 @@ gh release create v0.0.1 .\dist\ZeroRacersVirtualBoyRecomp-windows-x64.zip .\dis
 
 The ZIP's `build-info.json` records exact source commits and binary hashes.
 
+## Experimental color preview
+
+The color branch adds an optional [wireframe color mod](docs/MODS-AND-COLOR.md):
+cool silver tunnels, colored machines, and HUD/menu accents with exact native
+line and gap preservation. Build this branch, then run `python tools/play-color.py`
+to open its separate preview profile. This requires the new executable; the
+published 0.0.1 release remains the original red presentation.
+
 ## License
 
 Build glue, tooling and documentation are covered by [LICENSE.md](LICENSE.md).
