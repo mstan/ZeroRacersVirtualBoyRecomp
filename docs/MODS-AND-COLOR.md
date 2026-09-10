@@ -1,8 +1,8 @@
-# Zero Racers wireframe color preview
+# Zero Racers wireframe color mod
 
 The experimental full-color mod uses cool silver for the tunnel, blue/yellow/
 green/coral for the four normal machine models, additional NPC colors, and
-restrained HUD/menu colors. Preview **0.2.0** extends the first pass to changing
+restrained HUD/menu colors. Mod **0.2.0** extends the first pass to changing
 HUD glyphs, the give-up dialog, rotating minimap texels and model variants.
 Every original black gap, line position, thickness, overlap and stereo offset is
 preserved. Native intensity, including dim lines and brightness-register fades,
@@ -11,6 +11,14 @@ surfaces, bloom or geometry. The palette is an enhancement, not a claim about
 Nintendo's intended colors.
 
 ## Try it
+
+Game release **0.0.2** includes `zero-racers-full-color-0.2.0.vbmod` beside the
+executable. Start the launcher, open **Mods**, choose **Install .vbmod**, select
+that file, and enable **Wireframe color**. Both a fresh game installation and a
+newly imported package leave color **off** until you enable it. Existing mod
+preferences are preserved when updating.
+
+For a developer preview:
 
 Build this branch with `tools/build.ps1`; the normal build also creates
 `build/mod-packages/zero-racers-full-color-0.2.0.vbmod`. The renderer requires the

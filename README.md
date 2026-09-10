@@ -7,8 +7,8 @@ Japan/USA English Switch Online cartridge revision. Built with
 
 Includes a Virtual Boy launcher, ROM selection, persistent settings,
 keyboard/controller configuration, an in-game settings menu, saves, and a
-mod catalog. Version **0.0.1** uses the original red graphics. Color enhancement
-is a separate follow-up.
+mod catalog. Version **0.0.2** includes the optional wireframe color mod.
+Original red graphics remain the default; color is explicitly opt-in.
 
 ![Zero Racers starting grid](docs/native-red-gameplay.png)
 
@@ -28,6 +28,12 @@ comparisons. These checks do not cover every course and mode.
 2. Extract everything, including `assets`, `licenses`, and `SDL2.dll`.
 3. Run **ZeroRacersVirtualBoyRecomp.exe**, select **Browse For ROM**, choose your
    own extracted `.vb` file, and press **Play**. A ROM is not included.
+
+For color, open **Mods**, choose **Install .vbmod**, select the included
+`zero-racers-full-color-0.2.0.vbmod`, then enable **Wireframe color**.
+Installing the package alone leaves color off. **Tunnel tone** offers cool or
+neutral silver. Disable the feature to return to native red. See
+[Mods and color](docs/MODS-AND-COLOR.md) for screenshots and details.
 
 | Supported cartridge | Value |
 |---|---|
@@ -62,9 +68,13 @@ closing the game window exits. `--stereo` displays both eyes vertically.
 
 Settings live in `vbrecomp.cfg` beside the executable. Save RAM is written to
 `saves/zero-racers.sav` on clean exit. Keep these files when updating. Mods are
-managed through **Mods** and stored in `mods/`; 0.0.1 includes no enhancement
-package. The player build omits TCP debugging and CPU traces while retaining
+managed through **Mods** and stored in `mods/`. The included color package is
+optional and does not patch the ROM. The player build omits TCP debugging and CPU traces while retaining
 interpreter fallback.
+
+When updating from 0.0.1, close the game and extract the new ZIP into its folder.
+Keep `vbrecomp.cfg`, `saves/` and `mods/`; the download contains no personal
+settings or saves. The color mod requires the updated executable.
 
 ## For developers
 
@@ -165,21 +175,25 @@ After production build and validation, commit the source and dependency pins:
 
 ```powershell
 python .\tools\package-release.py --build build-release
-git tag -a v0.0.1 -m 'Zero Racers Recompiled 0.0.1'
-git push origin main v0.0.1
-gh release create v0.0.1 .\dist\ZeroRacersVirtualBoyRecomp-windows-x64.zip .\dist\SHA256SUMS.txt `
-  --title 'Zero Racers Recompiled 0.0.1' --notes-file .\docs\RELEASE-0.0.1.md
+git tag -a v0.0.2 -m 'Zero Racers Recompiled 0.0.2'
+git push origin HEAD v0.0.2
+gh release create v0.0.2 .\dist\ZeroRacersVirtualBoyRecomp-windows-x64.zip `
+  .\dist\zero-racers-full-color-0.2.0.vbmod .\dist\SHA256SUMS.txt --draft --verify-tag `
+  --title 'Zero Racers Recompiled 0.0.2' --notes-file .\docs\RELEASE-0.0.2.md
 ```
 
-The ZIP's `build-info.json` records exact source commits and binary hashes.
+The ZIP's `build-info.json` records exact source commits, binary/package hashes,
+and the disabled color default. Review the draft before publishing it.
 
-## Experimental color preview
+## Optional color mod
 
-The color branch adds an optional [wireframe color mod](docs/MODS-AND-COLOR.md):
+The optional [wireframe color mod](docs/MODS-AND-COLOR.md) provides
 cool silver tunnels, colored machines and NPCs, and dynamic HUD/menu accents with
-exact native line and gap preservation. Build this branch, then run `python tools/play-color.py`
-to open its separate preview profile. This requires the new executable; the
-published 0.0.1 release remains the original red presentation.
+exact native line and gap preservation. Version 0.0.2 includes this package,
+disabled by default. Developers can build this checkout and run
+`python tools/play-color.py` to open a separate preview profile with color enabled.
+The mod remains experimental; later courses and every model variant have not
+been individually reviewed.
 
 ## License
 

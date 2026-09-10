@@ -1,6 +1,7 @@
 # Component notices
 
 - vbrecomp runtime and recomp-ui: see their included license texts.
+- Shared mod runtime: see snes-mod-runtime.txt.
 - Dear ImGui and SDL2: see imgui.txt and SDL2.txt.
 - Lato, Noto and OpenMoji fonts: see the included font notices/license texts.
 - VSU implementation derives from Beetle/Mednafen; see Beetle-GPL-2.0.txt.
