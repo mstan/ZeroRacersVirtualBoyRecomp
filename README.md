@@ -53,7 +53,7 @@ its identity. Command-line launch is also supported:
 
 | Virtual Boy / action | Keyboard | Controller default |
 |---|---|---|
-| Left D-pad | Arrow keys | D-pad |
+| Left D-pad | Arrow keys | D-pad or left stick |
 | Right D-pad | W / A / S / D | Right stick |
 | A / B | X / Z | A / B |
 | L / R | Q / E | LB / RB |
@@ -61,8 +61,13 @@ its identity. Command-line launch is also supported:
 | Turbo | Tab | â€” |
 | Settings menu | Escape | â€” |
 
-Use **Configure** to rebind controls. Choose Keyboard or your connected
-controller in the player selector. **Settings** controls window scale,
+Controller input uses SDL2 GameController, including detection and hot-plug
+support. Choose your connected controller in the player selector once; the
+bindings above are ready to use and the selection is saved. Button labels in
+the table use Xbox names; SDL maps other recognized controller layouts.
+Use **Configure** to rebind controls. Left-stick steering supplements the default
+D-pad bindings and respects a changed or cleared binding. Choose **Keyboard**
+in the player selector to use keyboard input. **Settings** controls window scale,
 fullscreen, filtering, audio and volume. Escape opens settings during play;
 closing the game window exits. `--stereo` displays both eyes vertically.
 

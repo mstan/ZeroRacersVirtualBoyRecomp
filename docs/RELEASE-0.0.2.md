@@ -27,6 +27,10 @@ No ROM is included or patched.
   intensity are preserved. No added surfaces or effects.
 - Shared launcher, controls, in-game settings, saves and interpreter fallback
   remain available. The production player build omits TCP debugging and CPU traces.
+- SDL controller defaults support D-pad or left-stick steering, the right stick
+  for the Virtual Boy's right D-pad, A/B, shoulders and Start/Select. Select your
+  connected controller in the player selector; the mapping is ready to use.
+  Custom bindings and deadzones are supported.
 
 ## Updating
 
