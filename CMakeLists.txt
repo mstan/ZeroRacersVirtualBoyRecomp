@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ZeroRacersVirtualBoyRecomp VERSION 0.0.2 LANGUAGES C CXX)
+project(ZeroRacersVirtualBoyRecomp VERSION 0.0.3 LANGUAGES C CXX)
 include(CTest)
 set(VBRECOMP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vbrecomp" CACHE PATH "vbrecomp checkout")
 set(RECOMP_UI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui" CACHE PATH "recomp-ui checkout")

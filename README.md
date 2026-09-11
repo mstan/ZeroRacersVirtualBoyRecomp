@@ -7,7 +7,8 @@ Japan/USA English Switch Online cartridge revision. Built with
 
 Includes a Virtual Boy launcher, ROM selection, persistent settings,
 keyboard/controller configuration, an in-game settings menu, saves, and a
-mod catalog. Version **0.0.2** includes the optional wireframe color mod.
+mod catalog. Version **0.0.3** includes the optional wireframe color mod,
+with yellow repair lanes and beams and a single cool silver tunnel shade.
 Original red graphics remain the default; color is explicitly opt-in.
 
 ![Zero Racers starting grid](docs/native-red-gameplay.png)
@@ -177,17 +178,15 @@ replaced by host-side HLE. Beetle is used only for independent validation.
 
 ### Release
 
-The commands below document the original 0.0.2 draft. Use a new game version
-and tag when releasing subsequent changes; do not move an existing tag.
 After production build and validation, commit the source and dependency pins:
 
 ```powershell
 python .\tools\package-release.py --build build-release
-git tag -a v0.0.2 -m 'Zero Racers Recompiled 0.0.2'
-git push origin HEAD v0.0.2
-gh release create v0.0.2 .\dist\ZeroRacersVirtualBoyRecomp-windows-x64.zip `
-  .\dist\zero-racers-full-color-0.2.0.vbmod .\dist\SHA256SUMS.txt --draft --verify-tag `
-  --title 'Zero Racers Recompiled 0.0.2' --notes-file .\docs\RELEASE-0.0.2.md
+git tag -a v0.0.3 -m 'Zero Racers Recompiled 0.0.3'
+git push origin HEAD v0.0.3
+gh release create v0.0.3 .\dist\ZeroRacersVirtualBoyRecomp-windows-x64.zip `
+  .\dist\zero-racers-full-color-0.2.1.vbmod .\dist\SHA256SUMS.txt --draft --verify-tag `
+  --title 'Zero Racers Recompiled 0.0.3' --notes-file .\docs\RELEASE-0.0.3.md
 ```
 
 The ZIP's `build-info.json` records exact source commits, binary/package hashes,

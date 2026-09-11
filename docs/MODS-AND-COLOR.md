@@ -14,8 +14,8 @@ Nintendo's intended colors.
 
 ## Try it
 
-The current build creates `zero-racers-full-color-0.2.1.vbmod`. The earlier
-0.0.2 release draft includes mod 0.2.0 beside the executable. Start the launcher,
+Game release **0.0.3** includes `zero-racers-full-color-0.2.1.vbmod` beside the
+executable. Start the launcher,
 open **Mods**, choose **Install .vbmod**, select the package, and enable
 **Wireframe color**. Both a fresh game installation and a newly imported package
 leave color **off** until you enable it. Existing mod
