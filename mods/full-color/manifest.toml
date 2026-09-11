@@ -1,6 +1,6 @@
 format_version = 1
 id = "zero-racers.full-color"
-version = "0.2.0"
+version = "0.2.1"
 name = "Zero Racers Full Color"
 author = "Zero Racers Recomp contributors"
 description = "Cool silver tunnels and F-Zero-inspired machine and interface colors, preserving native wireframes."
@@ -21,18 +21,3 @@ default_enabled = false
 [[plugin]]
 feature = "full-color"
 id = "zero-racers.full-color"
-
-[[option]]
-feature = "full-color"
-id = "track_tone"
-label = "Tunnel tone"
-type = "choice"
-default = "cool"
-
-[[option.choice]]
-value = "cool"
-label = "Cool silver"
-
-[[option.choice]]
-value = "neutral"
-label = "Neutral silver"

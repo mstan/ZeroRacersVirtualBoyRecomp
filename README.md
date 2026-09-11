@@ -30,9 +30,10 @@ comparisons. These checks do not cover every course and mode.
    own extracted `.vb` file, and press **Play**. A ROM is not included.
 
 For color, open **Mods**, choose **Install .vbmod**, select the included
-`zero-racers-full-color-0.2.0.vbmod`, then enable **Wireframe color**.
-Installing the package alone leaves color off. **Tunnel tone** offers cool or
-neutral silver. Disable the feature to return to native red. See
+`zero-racers-full-color-*.vbmod`, then enable **Wireframe color**.
+Installing the package alone leaves color off. Mod 0.2.1 adds yellow repair
+lanes and beams, with a single default cool silver tunnel shade. Disable the
+feature to return to native red. See
 [Mods and color](docs/MODS-AND-COLOR.md) for screenshots and details.
 
 | Supported cartridge | Value |
@@ -176,6 +177,8 @@ replaced by host-side HLE. Beetle is used only for independent validation.
 
 ### Release
 
+The commands below document the original 0.0.2 draft. Use a new game version
+and tag when releasing subsequent changes; do not move an existing tag.
 After production build and validation, commit the source and dependency pins:
 
 ```powershell

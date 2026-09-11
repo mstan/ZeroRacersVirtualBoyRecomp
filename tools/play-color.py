@@ -13,8 +13,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--runtime', type=Path, default=GAME / 'build/vbrecomp/runtime/ZeroRacersVirtualBoyRecomp.exe')
     parser.add_argument('--rom', type=Path, default=GAME / 'roms/zero_racers.vb')
-    parser.add_argument('--package', type=Path, default=GAME / 'build/mod-packages/zero-racers-full-color-0.2.0.vbmod')
-    parser.add_argument('--profile', type=Path, default=GAME / 'build/color-profile-0.2.0')
+    parser.add_argument('--package', type=Path, default=GAME / 'build/mod-packages/zero-racers-full-color-0.2.1.vbmod')
+    parser.add_argument('--profile', type=Path, default=GAME / 'build/color-profile-0.2.1')
     args = parser.parse_args()
     for path in (args.runtime, args.rom, args.package):
         if not path.is_file():

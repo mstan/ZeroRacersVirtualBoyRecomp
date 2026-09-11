@@ -150,8 +150,6 @@ void activate() {
                 std::fill(model_inks.begin() + first, model_inks.begin() + last + 1, n);
         }
     }
-    if (vb_mod_option("track_tone", path, sizeof(path)) && std::string(path) == "neutral")
-        palette[Track] = 0xffffff;
     if (vb_mod_asset("materials.txt", path, sizeof(path))) {
         std::ifstream input(path); unsigned map, kind, x, y, hash; std::string mask;
         while (input >> std::dec >> map >> kind >> x >> y >> std::hex >> hash >> mask) {

@@ -1,0 +1,112 @@
+{
+  "passed": true,
+  "rom_sha256": "47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7",
+  "disabled_runtime": "96b0e10a7c1700dd8ba486dd2f21c6ccf00fdf10a23f322d4f58255f66de7abf",
+  "enabled_runtime": "96b0e10a7c1700dd8ba486dd2f21c6ccf00fdf10a23f322d4f58255f66de7abf",
+  "checkpoints": [
+    {
+      "frame": 2400,
+      "label": "opening",
+      "recolored_pixels": [
+        9164,
+        9246
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 2408,
+      "label": "repair-beams",
+      "recolored_pixels": [
+        10744,
+        10903
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 2414,
+      "label": "repair-beams-next",
+      "recolored_pixels": [
+        10617,
+        10770
+      ],
+      "changed_native_pixels": [
+        0,
+        0
+      ],
+      "changed_visible_masks": [
+        0,
+        0
+      ]
+    }
+  ],
+  "capture_manifest_sha256": [
+    "bd794b9adf3c603ed822ae8e9c8791bd5e3f6089b66ff520881f701f42f3f8f5",
+    "cef56520a21156ed12d6e6de7d5e961b0ec6d6cdf67fa475230dc3abe9c05624"
+  ],
+  "scope": "Opening plus two native repair-beam phases; diagnostic RAM positioning, not a full-course driving test.",
+  "diagnostic_setup": {
+    "course": 11,
+    "position": [
+      315,
+      0,
+      3000
+    ],
+    "segment": 15,
+    "speed": 0,
+    "damage_initial": 400
+  },
+  "repair": {
+    "2408": {
+      "active": 1,
+      "damage": 390,
+      "repair_model_pixels_by_eye": [
+        {
+          "1": 1192,
+          "3": 6,
+          "30": 333
+        },
+        {
+          "1": 1189,
+          "3": 10,
+          "30": 335
+        }
+      ]
+    },
+    "2414": {
+      "active": 1,
+      "damage": 380,
+      "repair_model_pixels_by_eye": [
+        {
+          "3": 17,
+          "30": 351,
+          "1": 1003
+        },
+        {
+          "3": 17,
+          "30": 351,
+          "1": 1001
+        }
+      ]
+    }
+  },
+  "package": {
+    "version": "0.2.1",
+    "default_enabled": false,
+    "options": [],
+    "sha256": "6404e5b21e62f76347a6c8306c2786dc6379e3f67712ce72a9a50a82812a43af"
+  }
+}

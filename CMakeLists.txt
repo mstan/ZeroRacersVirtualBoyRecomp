@@ -10,7 +10,7 @@ endif()
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 if(Python3_Interpreter_FOUND)
-    set(_color_package "${CMAKE_CURRENT_BINARY_DIR}/mod-packages/zero-racers-full-color-0.2.0.vbmod")
+    set(_color_package "${CMAKE_CURRENT_BINARY_DIR}/mod-packages/zero-racers-full-color-0.2.1.vbmod")
     add_custom_command(OUTPUT "${_color_package}"
         COMMAND "${Python3_EXECUTABLE}" "${VBRECOMP_ROOT}/tools/pack_mod.py"
             "${CMAKE_CURRENT_SOURCE_DIR}/mods/full-color" "${_color_package}"

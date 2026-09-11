@@ -2,8 +2,10 @@
 
 The experimental full-color mod uses cool silver for the tunnel, blue/yellow/
 green/coral for the four normal machine models, additional NPC colors, and
-restrained HUD/menu colors. Mod **0.2.0** extends the first pass to changing
-HUD glyphs, the give-up dialog, rotating minimap texels and model variants.
+restrained HUD/menu colors. Mod **0.2.1** also makes repair lanes and their
+animated beams warm yellow.
+Changing HUD glyphs, the give-up dialog, rotating minimap texels and model
+variants retain the colors introduced in 0.2.0.
 Every original black gap, line position, thickness, overlap and stereo offset is
 preserved. Native intensity, including dim lines and brightness-register fades,
 remains the maximum RGB channel of each colored pixel. There are no added
@@ -12,16 +14,17 @@ Nintendo's intended colors.
 
 ## Try it
 
-Game release **0.0.2** includes `zero-racers-full-color-0.2.0.vbmod` beside the
-executable. Start the launcher, open **Mods**, choose **Install .vbmod**, select
-that file, and enable **Wireframe color**. Both a fresh game installation and a
-newly imported package leave color **off** until you enable it. Existing mod
+The current build creates `zero-racers-full-color-0.2.1.vbmod`. The earlier
+0.0.2 release draft includes mod 0.2.0 beside the executable. Start the launcher,
+open **Mods**, choose **Install .vbmod**, select the package, and enable
+**Wireframe color**. Both a fresh game installation and a newly imported package
+leave color **off** until you enable it. Existing mod
 preferences are preserved when updating.
 
 For a developer preview:
 
 Build this branch with `tools/build.ps1`; the normal build also creates
-`build/mod-packages/zero-racers-full-color-0.2.0.vbmod`. The renderer requires the
+`build/mod-packages/zero-racers-full-color-0.2.1.vbmod`. The renderer requires the
 new executable on this branch; the original 0.0.1 release cannot activate it.
 
 ```powershell
@@ -29,14 +32,15 @@ python .\tools\play-color.py
 ```
 
 The helper installs the package, enables **Wireframe color** and opens recomp-ui
-using a separate `build/color-profile-0.2.0` for settings, saves and mod selections.
+using a separate `build/color-profile-0.2.1` for settings, saves and mod selections.
 It chooses an unused diagnostic port so another preview can remain open, and
 waits until the application closes. Supply `--rom` for a cartridge elsewhere.
 
 Alternatively, install the `.vbmod` through the launcher's **Mods** page and
-enable **Wireframe color**. **Tunnel tone** offers **Cool silver** and **Neutral
-silver**. Turn the feature off in Mods (or the in-game settings) to restore native
-red immediately. The ROM and saved game are never patched by the mod.
+enable **Wireframe color**. The tunnel uses the default cool silver; there is
+no separate silver selector. Turn the feature off in Mods (or the in-game
+settings) to restore native red immediately. The ROM and saved game are never
+patched by the mod.
 
 See the [launcher controls](color-mods.png), pictured with the first preview.
 
@@ -47,6 +51,8 @@ See the [launcher controls](color-mods.png), pictured with the first preview.
 ![NPC traffic and dynamic HUD](color-traffic.png)
 
 ![Give-up dialog](color-dialog.png)
+
+![Yellow repair lane and animated repair beams](color-repair.png)
 
 ## How it follows the original drawing
 
@@ -69,9 +75,15 @@ game logic:
 | Line commands | WRAM `05005230`, 32-byte entries | Track projected commands without reconstructing their geometry |
 | Native rasterizer | Stores inside `FFF13AD2` through `FFF13CE6`, command pointer r17 | Attach the tag only to framebuffer pixels the CPU actually changes |
 
-The opening tunnel end uses model 59; side sections observed at the start use
-models 34/35. Their model-copy path receives the tunnel palette too. Model tags
-retain identity until presentation, where `models.txt` selects the palette role.
+The opening tunnel end uses model 59 and retains the tunnel palette. Repair
+beams use model 1; repair lane borders use models 2/3 and clipped spans 30-42.
+These share the yellow palette. Model tags retain identity until presentation,
+where `models.txt` selects the palette role.
+The native repair routine at `FFF248EE` reduces damage at `FFF24982` and
+animates four model-1 beams. `FFF24AA2` selects models 2/3 and 30-42 for the
+visible repair lane spans. These identities distinguish repair lines from the
+surrounding tunnel without using screen position or changing any guest writes.
+
 The normal machine pairs, their aliases and alternate menu models have matching
 colors. Additional model families use teal, violet, amber, green and cyan;
 unclassified geometry uses silver. Some machines deliberately use coral red.
@@ -109,11 +121,18 @@ previously passing source test checks packed writes, retained owners, erasure,
 both eyes and display buffer lifetime. This is a focused route, not an exhaustive
 gameplay or course validation.
 
-To reproduce with your cartridge:
+The [repair comparison](color-repair-validation.json) checks the opening and
+two repair-beam animation phases in both eyes. The diagnostic instance is
+positioned inside Duct-A1's repair lane with damage set to 400. The native
+repair flag activates and damage decreases to 390, then 380. CPU state, WRAM,
+VRAM, native images, visible masks and intensities match with color off/on.
+The package has no tunnel-tone option and remains off by default.
+
+To reproduce the original menu/driving route with your cartridge:
 
 ```powershell
-python .\tools\color-capture.py --out .\validation\color-off --route .\tests\color-route.json --port 4692 --package .\build\mod-packages\zero-racers-full-color-0.2.0.vbmod
-python .\tools\color-capture.py --out .\validation\color-on --route .\tests\color-route.json --port 4692 --package .\build\mod-packages\zero-racers-full-color-0.2.0.vbmod --enabled
+python .\tools\color-capture.py --out .\validation\color-off --route .\tests\color-route.json --port 4692 --package .\build\mod-packages\zero-racers-full-color-0.2.1.vbmod
+python .\tools\color-capture.py --out .\validation\color-on --route .\tests\color-route.json --port 4692 --package .\build\mod-packages\zero-racers-full-color-0.2.1.vbmod --enabled
 python .\tools\validate-color.py .\validation\color-off .\validation\color-on
 ```
 
