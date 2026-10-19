@@ -1,0 +1,3562 @@
+{
+  "rom_sha256": "47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7",
+  "reset_between_cases": true,
+  "cases": [
+    {
+      "id": "track00",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 11,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 0,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                11
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track01",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 10,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 1,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                10
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track02",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 14,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 2,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                14
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                14
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                14
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track03",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 8,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 3,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                8
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track04",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 15,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 4,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                15
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                15
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track05",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 13,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 5,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                13
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                13
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                13
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track06",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 4,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 6,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                4
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                4
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track07",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 7,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 7,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                7
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                7
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                7
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track08",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 3,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 8,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track09",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 5,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 9,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                5
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                5
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track10",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 2,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 10,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track11",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 6,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 11,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                6
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                6
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                6
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track12",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 12,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 12,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                12
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                12
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                12
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track13",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 9,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 13,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                9
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                9
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                9
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track14",
+      "kind": "original-loader-course",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 256
+        },
+        {
+          "action": "advance",
+          "frames": 20,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "write",
+          "addr": "0x05001058",
+          "value": 1,
+          "size": 4
+        },
+        {
+          "action": "write",
+          "addr": "0x0500105c",
+          "value": 14,
+          "size": 4
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1400,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "confirmation",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 1500,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 260
+        },
+        {
+          "action": "advance",
+          "frames": 80,
+          "pad": 516
+        },
+        {
+          "action": "advance",
+          "frames": 160,
+          "pad": 20
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true,
+          "expect": [
+            {
+              "addr": "0x05001058",
+              "values": [
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "timetrial",
+      "kind": "original-time-trial-menu",
+      "steps": [
+        {
+          "action": "advance",
+          "frames": 300,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4096
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 10,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 90,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 1024
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "machine",
+          "visible": true
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "advance",
+          "frames": 8,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 120,
+          "pad": 0
+        },
+        {
+          "action": "capture",
+          "label": "start",
+          "visible": true
+        },
+        {
+          "action": "advance",
+          "frames": 1800,
+          "pad": 4
+        },
+        {
+          "action": "advance",
+          "frames": 500,
+          "pad": 260
+        },
+        {
+          "action": "capture",
+          "label": "driving",
+          "visible": true
+        }
+      ]
+    }
+  ]
+}

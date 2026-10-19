@@ -56,6 +56,11 @@ matches this revision:
 | CRC32 | `71553796` |
 | SHA-256 | `47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7` |
 
+## Coverage pass
+
+See [the October 2026 coverage record](docs/COVERAGE-20261018.md) for the
+tested gameplay, native/fallback results, reproduction commands and limits.
+
 ## For developers
 
 You need Windows 10/11 x64, Git, Python 3.11+ on PATH, MSYS2, and the supported
