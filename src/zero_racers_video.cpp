@@ -45,6 +45,49 @@ void text(Frame& f,int x,int y,const char* label,uint32_t ink=2) {
         }
     }
 }
+// The title uses cartridge artwork, not the common 8x8 HUD font. Borrow its
+// M/O/D/E and arrows directly from each eye's native BG map. Read on every
+// presentation so CHR/map writes, reset and restore cannot leave stale art.
+unsigned title_texel(int eye,unsigned x,unsigned y) {
+    const unsigned cell=vb_vip_read16(0x20000+(6+eye)*8192+(y/8*64+x/8)*2);
+    unsigned u=x%8,v=y%8;
+    if(cell&0x2000)u=7-u;
+    if(cell&0x1000)v=7-v;
+    return (vb_vip_read16(0x78000+(cell&2047)*16+v*2)>>(u*2))&3;
+}
+void title_pixel(unsigned x,unsigned y,unsigned raw,unsigned palette,unsigned ink) {
+    if(!raw)return;
+    const unsigned i=y*384+x,level=(palette>>(raw*2))&3;
+    frame.levels[i]=level;
+    auto& source=frame.sources[i];source={};source.kind=4;source.tile_hash=ink;source.raw=raw;
+}
+void title_versus(int eye,unsigned y,bool selected,unsigned palette) {
+    // V/S are the two missing letters in the title's baked word artwork.
+    // Match its 8x16 condensed stems and two-level beveled shading; the other
+    // four letters and selection arrows are the cartridge's actual pixels.
+    static constexpr const char* v[16]={
+        "122...12","122...12","122...12","122...12",
+        "122...12","122...12","122..122",".221.122",
+        ".221.122",".221122.",".221122.","..22122.",
+        "..22122.","...222..","...122..","........"};
+    static constexpr const char* s[16]={
+        ".112222.","1122.122","122...12","122...12",
+        "122.....","122.....",".221....","..22221.",
+        "...11222",".....122","......12","122...12",
+        "122..122",".221122.","..2222..","........"};
+    for(unsigned row=0;row<16;++row)for(unsigned x=0;x<8;++x) {
+        title_pixel(161+x,y+row,v[row][x]=='.'?0:v[row][x]-'0',palette,2);
+        title_pixel(170+x,y+row,s[row][x]=='.'?0:s[row][x]-'0',palette,2);
+        title_pixel(188+x,y+row,title_texel(eye,167+x,144+row),palette,2);
+        title_pixel(197+x,y+row,title_texel(eye,192+x,168+row),palette,2);
+        title_pixel(206+x,y+row,title_texel(eye,210+x,168+row),palette,2);
+        title_pixel(215+x,y+row,title_texel(eye,174+x,168+row),palette,2);
+        if(selected) {
+            title_pixel(145+x,y+row,title_texel(eye,132+x,96+row),palette,4);
+            title_pixel(231+x,y+row,title_texel(eye,242+x,96+row),palette,4);
+        }
+    }
+}
 void clock(char* out,size_t capacity,unsigned fields) {
     // The stock timer advances two centiseconds per display field.
     const uint64_t centiseconds=uint64_t(fields)*2;
@@ -123,11 +166,26 @@ int ZrVideoMenu(const ZrMenuState& menu,int eye,uint32_t* out) {
     frame.levels.fill(0);frame.sources.fill({});
     if(menu.screen==1) {
         vb_renderer_present(eye,out);
-        if(menu.highlight) {
-            for(unsigned y=168;y<184;++y)for(unsigned x=144;x<240;++x)
-                if(x<160 || x>=224)out[y*384+x]=0xff000000u;
+        std::copy_n(out,VB_RENDER_PIXELS,pane.data());
+        // Use the palette which actually drew the displayed text. Live GPLT
+        // registers can already belong to the next blink/draw phase.
+        vb_vip_copy_levels(eye,frame.levels.data());
+        const auto* native=vb_vip_source_buffer(eye);
+        unsigned palette=0xe4;
+        for(unsigned y=144;y<160;++y)for(unsigned x=167;x<175;++x) {
+            const unsigned i=y*384+x,raw=native[i].raw;
+            if(raw)palette=(palette&~(3u<<(raw*2)))|(unsigned(frame.levels[i])<<(raw*2));
         }
-        text(frame,menu.highlight?144:152,192,menu.highlight?">VS MODE<":"VS MODE",menu.highlight?4:2);
+        frame.levels.fill(0);
+        // Five native-height rows fit between the logo and copyright with a
+        // six-pixel gap. Preserve the original artwork and selected-row blink.
+        std::fill(out+88*384,out+204*384,0xff000000u);
+        for(unsigned row=0;row<4;++row)for(unsigned y=0;y<16;++y)
+            for(unsigned x=0;x<384;++x) {
+                if(menu.highlight && row==3 && (x<160 || x>=224))continue;
+                out[(92+row*22+y)*384+x]=pane[(96+row*24+y)*384+x];
+            }
+        title_versus(eye,180,menu.highlight!=0,palette);
     } else {
         std::fill_n(out,VB_RENDER_PIXELS,0xff000000u);text(frame,152,16,"VS MODE",4);
         char label[64];
