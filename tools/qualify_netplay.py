@@ -36,6 +36,7 @@ def main():
     p.add_argument('--window',action='store_true',help='Dummy SDL windows; check the actual one-eye game texture on every peer')
     p.add_argument('--state-operations',action='store_true',help='Qualify host-synchronized between-race slots and repeated input epoch resets')
     p.add_argument('--room-rematches',type=int,choices=(0,1,2),default=0,help='Return to the shared room and relaunch in the same processes')
+    p.add_argument('--color-package',type=Path,help='Install and enable the same optional full-color package on every peer')
     a=p.parse_args();a.out=a.out.resolve();a.out.mkdir(parents=True,exist_ok=False)
     if a.window and not a.shared_room:p.error('--window requires --shared-room')
     if a.room_rematches and not a.shared_room:p.error('--room-rematches requires --shared-room')
@@ -87,6 +88,7 @@ def main():
             save=folder/'protected-native.sav';native=bytes((i*29+7+slot)&255 for i in range(65536));save.write_bytes(native)
             saves.append((save,native));extra+=['--save',save.as_posix()]
             extra+=['--state-file',(folder/'quick.state').as_posix()]
+            if a.color_package:extra+=['--install-mod',a.color_package.resolve().as_posix(),'--enable-mod','zero-racers.full-color:full-color']
             settings={'RNET_SIM_LATENCY_MS':str(a.latency_ms),'RNET_SIM_JITTER_MS':str(a.jitter_ms),
                       'RNET_SIM_LOSS_PCT':str(a.loss_pct),'RNET_SIM_SEED':str(91231+slot),
                       'VB_RB_FORCE_MISPREDICT':str(a.force_mispredict if slot==0 else 0)}
