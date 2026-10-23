@@ -81,7 +81,9 @@ void loaded(void*) {
     // The exact simulation profile stays fixed; restoring only changes whether
     // the loaded session is active. All derived camera caches are separate.
     vb_simulation_points_enable(1);
-    if(launch.players)vb_host_sandbox_sram();
+    if(launch.players) {
+        if(!vb_host_begin_multiplayer_sram(vb_state_previous_sram()))error="Cannot protect native single-player progress";
+    } else if(!vb_host_end_multiplayer_sram(false))error="Cannot preserve native single-player progress";
 }
 void sync_guest(CPUState* cpu) {
     for(unsigned i=0;i<session.actors.size();++i)
@@ -106,8 +108,11 @@ int point(CPUState* cpu,void*) {
             menu.row=2+launch.authority;menu.ready_mask=0;menu.previous={};
         }
         if(menu.pending_launch) {
+            if(!vb_host_begin_multiplayer_sram(nullptr,true)) {
+                error="Cannot protect native single-player progress";menu.pending_launch=0;return 0;
+            }
             launch=configuration(menu.players,menu.course,menu.machines,1);menu.screen=0;menu.pending_launch=0;menu.native_launch=1;
-            vb_host_sandbox_sram();cpu->gpr[23]=0;cpu->pc=0xfff221c0u;return 1;
+            cpu->gpr[23]=0;cpu->pc=0xfff221c0u;return 1;
         }
         if(vb_netplay_native_setup()){cpu->write32(0x05001024,0);return 0;}
         const uint32_t packed=cpu->read32(0x05001024);const uint16_t pressed=packed>>16;
@@ -237,6 +242,11 @@ void field(CPUState* cpu,const VbGameInputs* bundle,void*) {
     if(session.phase==ZrRacePhase::Results) {
         const uint16_t pressed=bundle->buttons[launch.authority]&~game.menu.previous[launch.authority];
         for(unsigned i=0;i<4;++i)game.menu.previous[i]=bundle->buttons[i];
+        if(!launch.network && (pressed&VB_PAD_SELECT)) {
+            if(!vb_host_end_multiplayer_sram(true)){error="Cannot preserve native single-player progress";return;}
+            if(!vb_state_reset())vb_stub_abort("versus return to title failed",cpu->pc,0);
+            return;
+        }
         if(!game.menu.pending_launch && (pressed&(VB_PAD_START|VB_PAD_B))) {
             game.menu.players=launch.players;game.menu.course=launch.course;game.menu.machines=launch.machines;game.menu.row=0;
             if(pressed&VB_PAD_B){game.menu.screen=2;game.menu.ready_mask=0;}
@@ -251,6 +261,7 @@ void field(CPUState* cpu,const VbGameInputs* bundle,void*) {
     const ZrNativeCall backend=selected_backend();
     if(!ZrSessionStep(session,inputs,rom,rom_size,events,backend))
         vb_stub_abort("versus shared tick failed",cpu->pc,session.tick);
+    if(events.results)for(unsigned i=0;i<4;++i)game.menu.previous[i]=bundle->buttons[i];
     // Preserve the cartridge's finite shared command-channel behavior. Apply
     // emitted stores in the same stable human/contact/environment order as
     // the simulation; a later store to one native channel has priority.

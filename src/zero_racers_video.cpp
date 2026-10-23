@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include "vip.h"
 #include "red_lut.h"
+#include "netplay.h"
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -57,7 +58,10 @@ void standings(Frame& f,const ZrSessionState& session) {
         std::snprintf(line,sizeof(line),"P%u  %s",i+1,status(session.result[i].status));text(f,64,64+i*32,line);
         text(f,224,64+i*32,session.result[i].status==ZrRacerStatus::Finished?time:"--:--:--");
     }
-    if(session.phase==ZrRacePhase::Results)text(f,64,208,"START:REMATCH  B:CHANGE RACE",4);
+    if(session.phase==ZrRacePhase::Results) {
+        text(f,64,192,"START:REMATCH  B:CHANGE RACE",4);
+        if(!vb_netplay_enabled())text(f,144,208,"SELECT:TITLE",4);
+    }
 }
 bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& cameras,
           const std::array<ZrWarningState,4>& warnings,
