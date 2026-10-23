@@ -221,6 +221,15 @@ int main(int argc,char** argv) {
             const auto frozen=camera;ZrViewGeometry view{};
             require(ZrCameraBuildFromPose(view,camera,state.world,state.actors,i,rom.data(),rom.size(),native),"Independent frozen camera build");
             require(ZrRasterGeometry(view,pictures[i],rom.data(),rom.size(),native),"Both eye raster planes");
+            ZrEyePlanes tagged{};ZrEyeRacerBounds bounds;
+            require(ZrRasterGeometry(view,tagged,rom.data(),rom.size(),native,nullptr,&bounds)
+                && tagged==pictures[i],"Racer marker observation preserves every native pixel");
+            for(unsigned eye=0;eye<2;++eye) {
+                const auto& own=bounds[eye][i];
+                require(own.pixels>0 && own.left>=0 && own.right<384 && own.top>=0 && own.bottom<224,
+                    "Each eye independently locates its visible human model");
+            }
+            if(trace)trace.write(reinterpret_cast<const char*>(&bounds),sizeof(bounds));
             ZrEyePlanes repeated{};
             ZrViewGeometry repeated_view{};
             require(ZrCameraBuildFromPose(repeated_view,camera,state.world,state.actors,i,rom.data(),rom.size(),native)
@@ -242,6 +251,25 @@ int main(int argc,char** argv) {
         require(!std::memcmp(&canonical,&state,sizeof(state)),"Rendering changed canonical race state");
         require(pictures[0][0]!=pictures[1][0] && pictures[1][0]!=pictures[2][0]
             && pictures[2][0]!=pictures[3][0],"Each racer must have a distinct camera");
+        // Machine descriptors are shared assets. Ownership must follow the
+        // model instance when everyone chooses the same car, then disappear
+        // when that instance has no drawable geometry.
+        require(ZrSessionInitialize(state,11,{0,0,0,0},4,1,rom.data(),rom.size()),"Duplicate machine marker fixture");
+        const auto untouched=state;
+        for(unsigned i=0;i<4;++i) {
+            ZrCameraState camera;camera.mode=1;
+            for(unsigned n=0;n<20;++n)require(ZrCameraUpdatePose(camera,state.actors,i,rom.data(),rom.size(),native),"Duplicate machine camera");
+            ZrViewGeometry view;ZrEyePlanes pixels{};ZrEyeRacerBounds bounds;
+            require(ZrCameraBuildFromPose(view,camera,state.world,state.actors,i,rom.data(),rom.size(),native)
+                && ZrRasterGeometry(view,pixels,rom.data(),rom.size(),native,nullptr,&bounds),"Duplicate machine view");
+            for(unsigned eye=0;eye<2;++eye)require(bounds[eye][i].pixels>0,"Same-model human keeps its own stable player ID");
+            auto hidden=state.world;std::fill_n(hidden.models.begin()+i*32,32,0);pixels={};
+            require(ZrCameraBuildFromPose(view,camera,hidden,state.actors,i,rom.data(),rom.size(),native)
+                && ZrRasterGeometry(view,pixels,rom.data(),rom.size(),native,nullptr,&bounds),"Hidden model view");
+            for(unsigned eye=0;eye<2;++eye)require(bounds[eye][i].pixels==0,"Hidden model cannot leave a stale floating marker");
+            if(trace)trace.write(reinterpret_cast<const char*>(&bounds),sizeof(bounds));
+        }
+        require(!std::memcmp(&state,&untouched,sizeof(state)),"Marker ownership changed authoritative race state");
         std::cout<<"{\"passed\":true,\"native_grid_configurations\":"<<configurations<<",\"progress_courses\":"<<progress_courses
                  <<",\"rollback_replay_fields\":90,\"independent_views\":4,\"eyes_per_view\":2}\n";
         return 0;

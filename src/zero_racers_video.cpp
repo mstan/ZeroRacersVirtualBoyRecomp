@@ -19,6 +19,7 @@ struct ViewCache {
     int32_t model_bias=0;
     ZrEyePlanes planes;
     ZrEyeTags tags;
+    ZrEyeRacerBounds racers;
 };
 std::array<ViewCache,4> cache;
 // The exact cache is a qualified-correctness experiment. Keep the portable
@@ -44,6 +45,25 @@ void text(Frame& f,int x,int y,const char* label,uint32_t ink=2) {
             auto& source=f.sources[i];source={};source.kind=4;source.tile_hash=ink;source.raw=raw;
         }
     }
+}
+void player_tag(Frame& f,const ZrRacerBounds& bounds,unsigned seat) {
+    // Attach to visible native wireframe pixels, after each eye's projection,
+    // clipping and first-writer occlusion. Hidden ships have no floating tag.
+    if(bounds.pixels<3)return;
+    const int x=(bounds.left+bounds.right)/2-8,y=bounds.top-11;
+    if(x<1 || x+16>=384 || y<18 || y+8>=198)return;
+    const unsigned char label[3]={'P',static_cast<unsigned char>('1'+seat),0};
+    // A one-pixel silhouette keeps the native 8x8 race font legible over
+    // tunnel lines, with transparent gaps instead of an opaque nameplate.
+    for(unsigned n=0;n<2;++n)for(unsigned v=0;v<8;++v)for(unsigned u=0;u<8;++u) {
+        if(!((font[label[n]*16+v*2+u/4]>>(u%4*2))&3))continue;
+        for(int dy=-1;dy<=1;++dy)for(int dx=-1;dx<=1;++dx) {
+            const unsigned at=(y+int(v)+dy)*384+x+int(n*8+u)+dx;
+            f.levels[at]=0;f.sources[at]={};
+        }
+    }
+    static constexpr unsigned ink[4]={3,6,11,7}; // cyan, yellow, violet, green
+    text(f,x,y,reinterpret_cast<const char*>(label),ink[seat]);
 }
 // The title uses cartridge artwork, not the common 8x8 HUD font. Borrow its
 // M/O/D/E and arrows directly from each eye's native BG map. Read on every
@@ -123,10 +143,11 @@ bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& camer
        || std::memcmp(&saved.camera,&cameras[seat],sizeof(saved.camera)) || saved.model_bias!=bias) {
         auto view=std::make_unique<ZrViewGeometry>();
         ZrEyePlanes planes{};auto tags=std::make_unique<ZrEyeTags>();
+        ZrEyeRacerBounds racers;
         if(!ZrCameraBuildFromPose(*view,cameras[seat],session.world,session.actors,seat,rom,size,native,bias,session.players)
-           || !ZrRasterGeometry(*view,planes,rom,size,native,tags.get()))return false;
+           || !ZrRasterGeometry(*view,planes,rom,size,native,tags.get(),&racers))return false;
         saved.world=session.world;saved.actors=session.actors;saved.camera=cameras[seat];saved.model_bias=bias;
-        saved.planes=planes;saved.tags=*tags;saved.valid=true;
+        saved.planes=planes;saved.tags=*tags;saved.racers=racers;saved.valid=true;
     }
     frame.sources.fill({});
     for(unsigned y=0;y<224;++y)for(unsigned x=0;x<384;++x) {
@@ -134,6 +155,11 @@ bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& camer
         frame.levels[i]=level;
         auto& source=frame.sources[i];source.kind=4;source.map=255;source.x=x;source.y=y;
         source.raw=level;source.tile_hash=saved.tags[eye][i];
+    }
+    for(unsigned racer=0;racer<session.players;++racer) {
+        const auto status=session.result[racer].status;
+        if(status==ZrRacerStatus::Racing || status==ZrRacerStatus::Finished || status==ZrRacerStatus::Survived)
+            player_tag(frame,saved.racers[eye][racer],racer);
     }
     char label[64],time[32];const auto* body=session.actors[seat].body.data();
     const unsigned speed=word(body+0x34);

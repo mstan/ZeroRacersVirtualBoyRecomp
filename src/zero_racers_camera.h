@@ -16,6 +16,10 @@ struct ZrViewGeometry {
     std::array<uint8_t,1026*32> line{};
     std::array<uint32_t,514> edge_tags{};
     std::array<uint32_t,1026> line_tags{};
+    // Stable racer ownership, independent of machine/descriptor choice.
+    // Zero is scenery; 1..4 are the human model slots before projection.
+    std::array<uint8_t,514> edge_racers{};
+    std::array<uint8_t,1026> line_racers{};
 };
 enum class ZrCameraStage { Pose, Sector, Models, Tunnel, Project, Clip };
 struct ZrModelDisplayList {uint32_t count=0;std::array<uint8_t,84*32> models{};};
@@ -41,7 +45,13 @@ bool ZrCameraBuildFromPose(ZrViewGeometry&,const ZrCameraState&,const ZrWorldSta
                            const uint8_t* rom,size_t,ZrNativeCall native=nullptr,int32_t own_model_bias=0,unsigned repair_players=0);
 using ZrEyePlanes=std::array<std::array<uint8_t,0x6000>,2>;
 using ZrEyeTags=std::array<std::array<uint32_t,384*224>,2>;
+struct ZrRacerBounds {
+    int left=384,top=224,right=-1,bottom=-1;
+    unsigned pixels=0;
+};
+using ZrEyeRacerBounds=std::array<std::array<ZrRacerBounds,4>,2>;
 // Original first-writer line rasterizer. Both eye planes are independent.
 // Caller owns the initial pixels (e.g. native HUD); no implicit clear/VRAM.
 bool ZrRasterGeometry(const ZrViewGeometry&,ZrEyePlanes&,const uint8_t* rom,size_t,
-                       ZrNativeCall native=nullptr,ZrEyeTags* tags=nullptr);
+                       ZrNativeCall native=nullptr,ZrEyeTags* tags=nullptr,
+                       ZrEyeRacerBounds* racers=nullptr);

@@ -12,27 +12,44 @@ void observe_geometry(const CPUState* cpu,uint32_t address,unsigned width,uint32
             const auto descriptor=cpu->gpr[6]&0xfffff;
             view.edge_tags[(off-0x4220)/8]=descriptor>=0x61080 && descriptor<0x68010 && !(descriptor&15)
                 ?0x10000+(descriptor-0x61080)/16:0;
-        } else if(pc>=0x1420e && pc<0x14960)view.edge_tags[(off-0x4220)/8]=1;
+            // Native Models keeps its current 32-byte display-list record in
+            // r20. The first four records retain human slot order even when
+            // several humans choose the very same machine descriptor.
+            const unsigned model=cpu->gpr[20]-0x0500d270u;
+            view.edge_racers[(off-0x4220)/8]=model<4*32 && !(model&31)?uint8_t(model/32+1):0;
+        } else if(pc>=0x1420e && pc<0x14960) {
+            view.edge_tags[(off-0x4220)/8]=1;
+            view.edge_racers[(off-0x4220)/8]=0;
+        }
         // Clipping may edit these endpoints later. Retain their origin.
     }
     if(width==4 && (pc==0x15012 || pc==0x15150) && off>=0x5230 && !((off-0x5230)&31)
        && (off-0x5230)/32<view.line_tags.size()) {
         const unsigned edge=cpu->gpr[25]-0x05004220u;
         view.line_tags[(off-0x5230)/32]=edge<view.edge_tags.size()*8 && !(edge&7)?view.edge_tags[edge/8]:0;
+        view.line_racers[(off-0x5230)/32]=edge<view.edge_racers.size()*8 && !(edge&7)?view.edge_racers[edge/8]:0;
     }
 }
-struct RasterObserver {const ZrViewGeometry& view;const ZrEyePlanes& planes;ZrEyeTags* tags;};
+struct RasterObserver {const ZrViewGeometry& view;const ZrEyePlanes& planes;ZrEyeTags* tags;ZrEyeRacerBounds* racers;};
 void observe_raster(const CPUState* cpu,uint32_t address,unsigned width,uint32_t value,void* context) {
     auto& c=*static_cast<RasterObserver*>(context);const unsigned eye=address>=0x10000;
     const unsigned off=address-eye*0x10000;
     if(off>=0x6000 || (cpu->pc&0xfffff)<0x13b5a || (cpu->pc&0xfffff)>0x13ccc)return;
     const unsigned line=cpu->gpr[17]-0x05005230u;
     const uint32_t tag=line<c.view.line_tags.size()*32 && !(line&31)?c.view.line_tags[line/32]:0;
+    const unsigned racer=line<c.view.line_racers.size()*32 && !(line&31)?c.view.line_racers[line/32]:0;
     for(unsigned byte=0;byte<width;++byte)for(unsigned pixel=0;pixel<4;++pixel) {
         const unsigned x=(off+byte)/64,y=((off+byte)%64)*4+pixel;
         const unsigned before=(c.planes[eye][off+byte]>>(pixel*2))&3;
         const unsigned after=(value>>(byte*8+pixel*2))&3;
-        if(y<224 && before!=after)(*c.tags)[eye][y*384+x]=after?tag:0;
+        if(y<224 && before!=after) {
+            if(c.tags)(*c.tags)[eye][y*384+x]=after?tag:0;
+            if(after && c.racers && racer>=1 && racer<=4) {
+                auto& bounds=(*c.racers)[eye][racer-1];++bounds.pixels;
+                bounds.left=std::min(bounds.left,int(x));bounds.right=std::max(bounds.right,int(x));
+                bounds.top=std::min(bounds.top,int(y));bounds.bottom=std::max(bounds.bottom,int(y));
+            }
+        }
     }
 }
 }
@@ -117,7 +134,7 @@ bool ZrCameraBuildStage(ZrCameraStage stage,ZrViewGeometry& view,const ZrWorldSt
     view=next;return true;
 }
 bool ZrRasterGeometry(const ZrViewGeometry& view,ZrEyePlanes& output,
-                       const uint8_t* rom,size_t size,ZrNativeCall native,ZrEyeTags* tags) {
+                       const uint8_t* rom,size_t size,ZrNativeCall native,ZrEyeTags* tags,ZrEyeRacerBounds* racers) {
     if(!rom || size!=1048576 || view.lines>1026)return false;
     auto next=output;ZrMappedBus bus(rom,size);
     bus.map(0,next[0].data(),next[0].size());
@@ -129,11 +146,12 @@ bool ZrRasterGeometry(const ZrViewGeometry& view,ZrEyePlanes& output,
     if(tags)next_tags=std::make_unique<ZrEyeTags>(*tags);
     // The optional metadata is view-owned and follows original first-writer
     // stores, including unchanged occluding pixels and separate eye planes.
-    RasterObserver observer{view,next,next_tags.get()};
-    if(tags)bus.observe(&cpu,observe_raster,&observer);
+    ZrEyeRacerBounds next_racers{};
+    RasterObserver observer{view,next,next_tags.get(),racers?&next_racers:nullptr};
+    if(tags || racers)bus.observe(&cpu,observe_raster,&observer);
     const auto result=ZrRoutineRun(cpu,bus.callbacks(),0xfff13ad2u,0xfff0fb9au,8000000,native);
     if(!result.completed)return false;
-    output=next;if(tags)*tags=*next_tags;return true;
+    output=next;if(tags)*tags=*next_tags;if(racers)*racers=next_racers;return true;
 }
 bool ZrCameraBuild(ZrViewGeometry& view,const ZrWorldState& world,
                    const std::array<ZrActorState,6>& actors,unsigned slot,

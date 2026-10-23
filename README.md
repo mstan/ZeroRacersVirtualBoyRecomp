@@ -62,6 +62,7 @@ the course and machines, have every racer press A to ready, then start the
 race. Assign local controllers in the launcher's controller settings. Two
 players share a top/bottom split; three or four use a four-pane layout, with
 standings in the spare three-player pane. Each racer sees one eye.
+Small P1-P4 tags above visible ships identify each racer in every view.
 
 For remote play, create or join a room through **Netplay** in the launcher.
 LAN and Direct IP use the local network; online rooms use the shared lobby
