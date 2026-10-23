@@ -21,7 +21,9 @@ struct ViewCache {
     ZrEyeTags tags;
 };
 std::array<ViewCache,4> cache;
-bool cache_enabled=true;
+// The exact cache is a qualified-correctness experiment. Keep the portable
+// rebuild path as default until balanced CPU measurements establish a benefit.
+bool cache_enabled=false;
 struct Frame {
     std::array<uint32_t,VB_RENDER_PIXELS> stock;
     std::array<uint8_t,VB_RENDER_PIXELS> levels;
