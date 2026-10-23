@@ -41,6 +41,17 @@ L/R, Enter is Start, and Right Shift is Select. Hold Tab for turbo.
 Use **Configure** to remap controls and **Settings** for display and audio.
 Press **Escape** to open settings during play. Close the game normally to save.
 
+**F7** opens the save-state browser: choose one of twelve thumbnail slots,
+press **S** to save or **Enter** to load. **F8** opens the rewind filmstrip:
+use Left/Right to browse, Enter to resume there, or Escape to cancel.
+Controller shortcuts are Select+R for save states and Select+L for rewind;
+A selects/loads, X saves, and B cancels. Both menus pause the game.
+
+Rewind keeps 32 snapshots every six frames by default; Settings controls its
+enablement, depth and interval. F5/F6 remain quick save/load shortcuts.
+Snapshots belong to the current build; native cartridge progress is saved
+separately. Netplay is not included.
+
 When updating, close the game and extract the new ZIP into its folder. Keep
 `vbrecomp.cfg`, `keybinds.ini`, `saves/` and `mods/` to retain your setup and progress.
 

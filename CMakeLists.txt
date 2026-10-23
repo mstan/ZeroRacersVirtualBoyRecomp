@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ZeroRacersVirtualBoyRecomp VERSION 0.0.4 LANGUAGES C CXX)
+project(ZeroRacersVirtualBoyRecomp VERSION 0.0.5 LANGUAGES C CXX)
 include(CTest)
 set(VBRECOMP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vbrecomp" CACHE PATH "vbrecomp checkout")
 set(RECOMP_UI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui" CACHE PATH "recomp-ui checkout")
@@ -35,6 +35,7 @@ target_compile_definitions(vb-runtime PRIVATE
     VB_GAME_CRC32=0x71553796u)
 set_target_properties(vb-runtime PROPERTIES OUTPUT_NAME ZeroRacersVirtualBoyRecomp)
 target_sources(vb-runtime PRIVATE src/zero_racers_color.cpp)
+vb_state_add_identity(vb-runtime src/zero_racers_color.cpp CMakeLists.txt)
 if(ZERO_RACERS_UI)
     add_custom_target(zero-racers-assets
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vb-runtime>/assets/img"
