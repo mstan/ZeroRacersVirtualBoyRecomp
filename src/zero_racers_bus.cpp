@@ -20,6 +20,13 @@ bool ZrMappedBus::word(uint32_t address,uint32_t& value) {
     if(!map(address,&value,sizeof(value)))return false;
     regions_[count_-1].scalar=&value;return true;
 }
+bool ZrMappedBus::rom_word(uint32_t address,uint32_t value) {
+    address&=0x07ffffffu;
+    if(address<0x07000000 || address>0x07fffffc || (address&3)
+       || rom_words_count_==rom_words_.size())return valid_=false;
+    for(size_t i=0;i<rom_words_count_;++i)if(rom_words_[i].address==address)return valid_=false;
+    rom_words_[rom_words_count_++]={address,value};return true;
+}
 bool ZrMappedBus::track_word(uint32_t address,uint32_t& value,uint32_t& dirty,uint32_t bit) {
     if(!bit || !word(address,value))return false;
     regions_[count_-1].dirty=&dirty;regions_[count_-1].bit=bit;return true;
@@ -40,7 +47,14 @@ bool ZrMappedBus::read(void* context,uint32_t address,unsigned width,uint32_t* v
     if(!b.valid_ || (width!=1 && width!=2 && width!=4) || width>0x08000000u-address)return false;
     if(address>=0x07000000u) {
         if(!b.rom_ || !b.rom_size_ || (b.rom_size_&(b.rom_size_-1)))return false;
-        *value=0;for(unsigned i=0;i<width;++i)*value|=uint32_t(b.rom_[(address+i)&(b.rom_size_-1)])<<(8*i);
+        *value=0;for(unsigned i=0;i<width;++i) {
+            uint8_t byte=b.rom_[(address+i)&(b.rom_size_-1)];
+            for(size_t j=0;j<b.rom_words_count_;++j) {
+                const auto& r=b.rom_words_[j];
+                if(address+i>=r.address && address+i-r.address<4){byte=uint8_t(r.value>>((address+i-r.address)*8));break;}
+            }
+            *value|=uint32_t(byte)<<(8*i);
+        }
         return true;
     }
     if(address>=stack_base && address+width<=stack_end) {

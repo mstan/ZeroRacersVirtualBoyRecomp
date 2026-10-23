@@ -1,4 +1,5 @@
 #include "zero_racers_session.h"
+#include "zero_racers_menu.h"
 #include "input.h"
 #include "vb_crc32.h"
 #include "png_write.h"
@@ -63,6 +64,22 @@ int main(int argc,char** argv) {
         const std::vector<uint8_t> rom{std::istreambuf_iterator<char>(input),{}};
         require(rom.size()==1048576 && vb_crc32_compute(rom.data(),rom.size())==0x71553796,"Stock ROM identity");
         const std::array<unsigned,4> machines{0,1,2,3};
+        for(unsigned authority=0;authority<4;++authority) {
+            ZrMenuState menu;menu.screen=2;menu.players=4;menu.row=0;
+            std::array<uint16_t,4> pads{};pads[authority]=VB_PAD_LRIGHT;
+            ZrMenuStep(menu,pads,authority,true,false);require(menu.players==4,"Online roster is fixed");
+            ZrMenuStep(menu,{},authority,true,false);menu.row=1;
+            pads={};pads[(authority+1)%4]=VB_PAD_LRIGHT;
+            ZrMenuStep(menu,pads,authority,true,false);require(menu.course==1,"Guest cannot change the course");
+            require(menu.machines[(authority+1)%4]==machines[(authority+1)%4]+1
+                || (machines[(authority+1)%4]==3 && menu.machines[(authority+1)%4]==0),"Guest selects own machine");
+            ZrMenuStep(menu,{},authority,true,false);pads={};pads[authority]=VB_PAD_LRIGHT;
+            ZrMenuStep(menu,pads,authority,true,false);require(menu.course==2,"Moved host retains course authority");
+            ZrMenuStep(menu,{},authority,true,false);pads.fill(VB_PAD_A);menu.row=2+authority;
+            ZrMenuStep(menu,pads,authority,true,false);require(menu.ready_mask==15,"Every human readies its own seat");
+            ZrMenuStep(menu,{},authority,true,false);pads={};pads[authority]=VB_PAD_START;
+            ZrMenuStep(menu,pads,authority,true,false);require(menu.pending_launch==1,"Moved host starts a ready field");
+        }
         std::array<ZrSeatInput,4> inputs{};ZrSessionState state;ZrSessionEvents events;
         unsigned configurations=0;
         unsigned progress_courses=0;
@@ -148,7 +165,36 @@ int main(int argc,char** argv) {
         state.phase=ZrRacePhase::Racing;inputs={};inputs[0].command=inputs[1].command=ZrInputForfeit;
         require(step(state,inputs,rom,events),"Forfeit sealed commands");
         require(state.phase==ZrRacePhase::Results && state.result[2].status==ZrRacerStatus::Survived
-            && state.result[2].finish_field==0,"Last survivor has no invented finish time");
+            && state.result[2].finish_field==0 && word(state.actors[2].body.data()+0x34)==0,"Last survivor has no invented finish time or running engine");
+        // Build all human repair beams at authored repair rectangles. The
+        // view list keeps sparks, then beams in seat order, then course art.
+        for(unsigned course=1;course<=16;++course) {
+            require(ZrSessionInitialize(state,course,machines,4,1,rom.data(),rom.size()),"Repair view fixture");
+            const auto* bounds=rom.data()+0xe35c4+course*16;
+            const int32_t x=int32_t((int64_t(int32_t(word(bounds)))+int32_t(word(bounds+4)))/2);
+            const int32_t z=int32_t((int64_t(int32_t(word(bounds+8)))+int32_t(word(bounds+12)))/2);
+            for(unsigned i=0;i<4;++i) {
+                auto& a=state.actors[i];word(a.body.data(),uint32_t(x));word(a.body.data()+8,uint32_t(z));
+                word(a.body.data()+0x38,500);a.native_1148=0;
+                ZrEnvironmentEvents repair;
+                require(ZrActorEnvironment(ZrEnvironment::Repair,a,state.world,i,rom.data(),rom.size(),repair,native),"Repair beam preparation");
+            }
+            ZrWorldSyncRacerModels(state.world,state.actors);const auto unchanged=state;
+            ZrModelDisplayList list;
+            require(ZrComposeRepairModels(list,state.world,state.actors,4,rom.data(),rom.size()),"Four-player draw list");
+            const unsigned count=word(rom.data()+0xcb054+course*16+8);
+            require(list.count==count+12 && std::equal(state.world.models.begin(),state.world.models.begin()+12*32,list.models.begin())
+                && std::equal(state.world.models.begin()+16*32,state.world.models.begin()+count*32,list.models.begin()+28*32),"Original draw ordering");
+            for(unsigned i=0;i<4;++i) {
+                require(std::equal(state.actors[i].repair_models.begin(),state.actors[i].repair_models.end(),list.models.begin()+(12+i*4)*32),"Every seat's repair beams");
+                ZrCameraState camera;camera.mode=1;ZrViewGeometry view;
+                for(unsigned n=0;n<20;++n)require(ZrCameraUpdatePose(camera,state.actors,i,rom.data(),rom.size(),native),"Repair camera");
+                require(ZrCameraBuildFromPose(view,camera,state.world,state.actors,i,rom.data(),rom.size(),native,0,4),"Simultaneous repair geometry capacity");
+                ZrEyePlanes planes{};require(ZrRasterGeometry(view,planes,rom.data(),rom.size(),native),"Repair both-eye raster");
+                if(trace)trace.write(reinterpret_cast<const char*>(&planes),sizeof(planes));
+            }
+            require(!std::memcmp(&state,&unchanged,sizeof(state)),"Repair rendering changed authoritative state");
+        }
         // Derived views may differ; producing/repeating them cannot mutate the
         // authoritative state used by the rollback comparison above.
         state=expected;const auto canonical=state;std::array<ZrEyePlanes,4> pictures{};

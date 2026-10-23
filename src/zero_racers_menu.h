@@ -10,4 +10,4 @@ struct ZrMenuState {
     std::array<uint32_t,4> previous{};
 };
 bool ZrMenuValidate(const ZrMenuState&);
-void ZrMenuStep(ZrMenuState&,const std::array<uint16_t,4>&);
+void ZrMenuStep(ZrMenuState&,const std::array<uint16_t,4>&,unsigned authority=0,bool fixed_players=false,bool allow_back=true);

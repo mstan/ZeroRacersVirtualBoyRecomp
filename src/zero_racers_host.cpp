@@ -2,6 +2,7 @@
 // will use this same canonical session; command-line entry is for automation.
 #include "zero_racers_session.h"
 #include "zero_racers_video.h"
+#include "zero_racers_audio.h"
 #include "game_host.h"
 #include "simulation_points.h"
 #include "memory.h"
@@ -11,6 +12,7 @@
 #include "host.h"
 #include "v810_interpreter.h"
 #include "input.h"
+#include "netplay.h"
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
@@ -20,9 +22,11 @@ struct LaunchState {
     uint32_t players=0,course=1;
     std::array<unsigned,4> machines{0,1,2,3};
     uint32_t seed=1;
+    uint32_t network=0,authority=0;
 };
-struct GameState {LaunchState launch;ZrSessionState session;std::array<ZrCameraState,4> cameras;ZrMenuState menu;};
-static_assert(sizeof(LaunchState)==28 && sizeof(ZrMenuState)==64 && sizeof(GameState)==4544,"Canonical launch/camera/menu layout");
+struct GameState {LaunchState launch;ZrSessionState session;std::array<ZrCameraState,4> cameras;ZrMenuState menu;
+    std::array<ZrWarningState,4> warnings;};
+static_assert(sizeof(LaunchState)==36 && sizeof(ZrMenuState)==64 && sizeof(GameState)==4728,"Canonical launch/camera/menu/warning layout");
 GameState game;
 ZrSessionState& session=game.session;
 LaunchState& launch=game.launch;
@@ -31,6 +35,9 @@ std::array<unsigned,4> machines{0,1,2,3};
 const char* error="";
 const uint8_t* rom;
 size_t rom_size;
+LaunchState configuration(unsigned players,unsigned course,const std::array<unsigned,4>& selected,unsigned seed) {
+    return {players,course,selected,seed,uint32_t(vb_netplay_enabled()!=0),unsigned(vb_netplay_authority_seat())};
+}
 uint32_t word(const uint8_t* p){return p[0]|uint32_t(p[1])<<8|uint32_t(p[2])<<16|uint32_t(p[3])<<24;}
 void strict_native(CPUState* cpu,uint32_t entry,uint32_t return_pc) {
     vb_execution.mode=VB_EXEC_NATIVE;vb_dispatch_call(cpu,entry,return_pc);
@@ -54,10 +61,15 @@ int option(int argc,char** argv,int* index,void*) {
 int validate(const void* data,size_t size,void*) {
     if(size!=sizeof(game))return 0;
     GameState candidate;std::memcpy(&candidate,data,size);
-    if(!ZrMenuValidate(candidate.menu) || (candidate.menu.screen && candidate.session.phase!=ZrRacePhase::Empty))return 0;
+    if(candidate.launch.network!=uint32_t(vb_netplay_enabled()!=0)
+       || candidate.launch.authority!=unsigned(vb_netplay_authority_seat()))return 0;
+    if(candidate.launch.network && candidate.launch.players!=unsigned(vb_netplay_players()))return 0;
+    if(!ZrMenuValidate(candidate.menu) || (candidate.menu.screen && candidate.session.phase!=ZrRacePhase::Empty
+        && !(candidate.menu.screen==2 && candidate.session.phase==ZrRacePhase::Results)))return 0;
     if(candidate.launch.players && (candidate.launch.players<2 || candidate.launch.players>4))return 0;
     if(candidate.launch.course<1 || candidate.launch.course>16)return 0;
     for(unsigned machine:candidate.launch.machines)if(machine>=4)return 0;
+    for(const auto& warning:candidate.warnings)if(!ZrWarningValidate(warning))return 0;
     for(unsigned i=0;i<candidate.cameras.size();++i)
         if(candidate.cameras[i].mode!=(candidate.session.phase!=ZrRacePhase::Empty && i<candidate.session.players?1u:0u))return 0;
     if(candidate.session.phase!=ZrRacePhase::Empty
@@ -83,14 +95,21 @@ void sync_guest(CPUState* cpu) {
     cpu->write32(0x050010f4,0);cpu->write32(0x050010f8,0);
     cpu->write32(0x05001140,session.actors[0].native_1140);
     cpu->write32(0x05001144,session.actors[0].native_1144);
+    cpu->write32(0x05001104,session.actors[0].native_1104);
+    cpu->write32(0x05001148,session.actors[0].native_1148);
 }
 int point(CPUState* cpu,void*) {
-    if(cpu->pc==0xfff21d12u && session.phase==ZrRacePhase::Empty && !launch.players) {
+    if(cpu->pc==0xfff21d12u && session.phase==ZrRacePhase::Empty && (!launch.players || vb_netplay_native_setup())) {
         auto& menu=game.menu;
+        if(vb_netplay_native_setup() && !menu.screen) {
+            menu.screen=2;menu.players=launch.players;menu.course=launch.course;menu.machines=launch.machines;
+            menu.row=2+launch.authority;menu.ready_mask=0;menu.previous={};
+        }
         if(menu.pending_launch) {
-            launch={menu.players,menu.course,menu.machines,1};menu.screen=0;menu.pending_launch=0;menu.native_launch=1;
+            launch=configuration(menu.players,menu.course,menu.machines,1);menu.screen=0;menu.pending_launch=0;menu.native_launch=1;
             vb_host_sandbox_sram();cpu->gpr[23]=0;cpu->pc=0xfff221c0u;return 1;
         }
+        if(vb_netplay_native_setup()){cpu->write32(0x05001024,0);return 0;}
         const uint32_t packed=cpu->read32(0x05001024);const uint16_t pressed=packed>>16;
         if(menu.screen==2)cpu->write32(0x05001024,0);
         else {
@@ -110,7 +129,24 @@ int point(CPUState* cpu,void*) {
     if(cpu->pc==0xfff0fc5cu && launch.players && session.phase==ZrRacePhase::Empty && game.menu.native_launch) {
         cpu->pc=0xfff0fd1cu;return 1;
     }
+    if(cpu->pc==0xfff0fe5au && session.phase==ZrRacePhase::Results && game.menu.pending_launch) {
+        // Re-enter the real race initializer in its existing GP stack frame.
+        // New course assets/music/devices follow the same native path as boot.
+        game.menu.screen=0;cpu->pc=0xfff0fd1cu;return 1;
+    }
+    if(cpu->pc==0xfff10c70u && session.phase==ZrRacePhase::Ready) {
+        // Native fly-in has completed. Versus owns its shared 150-field
+        // countdown and the same original F3 beep/GO commands, exactly once.
+        if(!ZrSessionStart(session))vb_stub_abort("versus countdown failed",cpu->pc,0);
+        cpu->write8(0x050000f3,5);
+        cpu->write16(0x0003d908,0x100);cpu->write16(0x0003d8e8,0x100);
+        cpu->pc=0xfff10d30u;return 1;
+    }
     if(cpu->pc==0xfff0ff64u) {
+        if(game.menu.pending_launch && session.phase==ZrRacePhase::Results) {
+            launch=configuration(game.menu.players,game.menu.course,game.menu.machines,launch.seed);
+            session={};game.cameras={};game.menu.pending_launch=0;ZrVideoInvalidate();
+        }
         if(launch.players) {
             cpu->write32(0x05001058,launch.course);cpu->write32(0x05001100,0);
             cpu->write32(0x050010fc,word(rom+0xddd94+launch.machines[0]*20));
@@ -120,7 +156,9 @@ int point(CPUState* cpu,void*) {
             vb_stub_abort("versus initialization failed",cpu->pc,launch.course);
         if(session.phase!=ZrRacePhase::Empty) {
             game.cameras={};
+            game.warnings={};
             for(unsigned i=0;i<session.players;++i) {
+                for(unsigned off=0;off<32;++off)game.warnings[i].power_world[off]=cpu->read8(0x0003db00+off);
                 game.cameras[i].mode=1;
                 if(!ZrCameraUpdatePose(game.cameras[i],session.actors,i,rom,rom_size,selected_backend()))
                     vb_stub_abort("versus camera initialization failed",cpu->pc,i);
@@ -129,11 +167,34 @@ int point(CPUState* cpu,void*) {
         }
     } else if(session.phase!=ZrRacePhase::Empty) {
         if(cpu->pc==0xfff0f4c4u) {
-            if(session.phase==ZrRacePhase::Ready && !ZrSessionStart(session))
-                vb_stub_abort("versus countdown failed",cpu->pc,0);
+            if(session.phase==ZrRacePhase::Ready) {
+                if(!ZrSessionStart(session))vb_stub_abort("versus countdown failed",cpu->pc,0);
+                cpu->write8(0x050000f3,5);
+            }
             sync_guest(cpu);cpu->pc=0xfff0f65au;return 1;
         }
         if(cpu->pc==0xfff0f77eu) {cpu->pc=0xfff0fa76u;return 1;}
+        if(cpu->pc==0xfff0fa7au && session.phase!=ZrRacePhase::Ready) {
+            cpu->pc=0xfff0fa7eu;return 1; // per-actor audio was sealed at end_field
+        }
+        if(cpu->pc==0xfff0fb8au && session.phase!=ZrRacePhase::Ready) {
+            for(unsigned i=0;i<session.players;++i) {
+                if(session.result[i].status!=ZrRacerStatus::Racing)continue;
+                // Native HUD formatting (172B0) also advances the primary
+                // damage-message latch. Respect that producer rather than
+                // repeatedly announcing the same damage from a private zero.
+                if(i==0)game.warnings[i].previous_damage=cpu->read32(0x05001168);
+                ZrEnvironmentEvents commands;
+                if(!ZrActorWarning(game.warnings[i],session.actors[i],cpu->read32(0x05001048),
+                    rom,rom_size,commands,selected_backend()))vb_stub_abort("versus warning failed",cpu->pc,i);
+                if(i==0) {
+                    if(commands.written&1)cpu->write32(0x05001160,commands.native_1160);
+                    cpu->write32(0x05001168,game.warnings[i].previous_damage);
+                    cpu->write32(0x0500114c,game.warnings[i].model_bias);
+                }
+            }
+            cpu->pc=0xfff0fb8eu;return 1;
+        }
     }
     return 0;
 }
@@ -141,41 +202,92 @@ int initialize(CPUState*,void*) {
     rom=vb_rom_data();rom_size=vb_rom_size();
     if(!rom || rom_size!=1048576)return 0;
     if(!ZrVideoInitialize(rom,rom_size)){error="Cannot decode stock versus artwork";return 0;}
-    launch={requested_players,requested_course,machines,1};
-    if(!vb_state_register_simulation("zero-racers.versus.v1",&game,sizeof(game),validate,loaded,nullptr))return 0;
-    for(uint32_t pc:{0xfff0ff64u,0xfff1047eu,0xfff0f4c4u,0xfff0f77eu,0xfff21d12u,0xfff221dcu,0xfff0fc5cu}) {
+    if(vb_netplay_enabled())requested_players=unsigned(vb_netplay_players());
+    launch=configuration(requested_players,requested_course,machines,1);
+    if(!vb_state_register_simulation("zero-racers.versus.v2",&game,sizeof(game),validate,loaded,nullptr))return 0;
+    for(uint32_t pc:{0xfff0ff64u,0xfff1047eu,0xfff0f4c4u,0xfff0f77eu,0xfff21d12u,0xfff221dcu,0xfff0fc5cu,
+                     0xfff10c70u,0xfff0fa7au,0xfff0fe5au,0xfff0fb8au}) {
         const auto* instruction=rom+(pc&0xfffff);
         if(!vb_simulation_point_register(pc,uint16_t(instruction[0]|uint16_t(instruction[1])<<8),point,nullptr))return 0;
     }
     return vb_simulation_points_enable(1);
 }
+void commit_environment(CPUState* cpu,const ZrEnvironmentEvents& e,bool primary) {
+    if(primary && (e.written&1))cpu->write32(0x05001160,e.native_1160);
+    if(e.written&2)cpu->write8(0x050000e2,e.native_e2);
+    if(e.written&4)cpu->write8(0x050000f1,e.native_f1);
+    if(e.written&8)cpu->write8(0x050000f2,e.native_f2);
+}
+void commit_human(CPUState* cpu,const ZrActorEvents& e,bool primary) {
+    if(primary && (e.written&1))cpu->write32(0x05001160,e.native_1160);
+    if(primary && (e.written&2))cpu->write32(0x0500116c,e.native_116c);
+    if(e.written&4)cpu->write8(0x050000ee,e.native_ee);
+    if(e.written&8)cpu->write8(0x050000f1,e.native_f1);
+    if(e.written&16)cpu->write8(0x050000f2,e.native_f2);
+    if(e.written&32)cpu->write8(0x050000f3,e.native_f3);
+}
 void field(CPUState* cpu,const VbGameInputs* bundle,void*) {
     if(game.menu.screen==2) {
         std::array<uint16_t,4> pads{};for(unsigned i=0;i<4;++i)pads[i]=bundle->buttons[i];
-        ZrMenuStep(game.menu,pads);return;
+        ZrMenuStep(game.menu,pads,launch.authority,launch.network!=0,!launch.network || session.phase==ZrRacePhase::Results);
+        if(session.phase==ZrRacePhase::Results && game.menu.screen==1)game.menu.screen=0;
+        return;
     }
     if(session.phase==ZrRacePhase::Empty || session.phase==ZrRacePhase::Ready)return;
+    if(session.phase==ZrRacePhase::Results) {
+        const uint16_t pressed=bundle->buttons[launch.authority]&~game.menu.previous[launch.authority];
+        for(unsigned i=0;i<4;++i)game.menu.previous[i]=bundle->buttons[i];
+        if(!game.menu.pending_launch && (pressed&(VB_PAD_START|VB_PAD_B))) {
+            game.menu.players=launch.players;game.menu.course=launch.course;game.menu.machines=launch.machines;game.menu.row=0;
+            if(pressed&VB_PAD_B){game.menu.screen=2;game.menu.ready_mask=0;}
+            else {game.menu.pending_launch=1;game.menu.ready_mask=(1u<<launch.players)-1;}
+        }
+        return;
+    }
     std::array<ZrSeatInput,4> inputs{};
     for(unsigned i=0;i<session.players;++i)inputs[i]={bundle->buttons[i],bundle->commands[i]};
     ZrSessionEvents events;
+    const unsigned countdown=session.phase==ZrRacePhase::Countdown?session.countdown:0;
     const ZrNativeCall backend=selected_backend();
     if(!ZrSessionStep(session,inputs,rom,rom_size,events,backend))
         vb_stub_abort("versus shared tick failed",cpu->pc,session.tick);
-    if(events.physics || (session.phase==ZrRacePhase::Countdown && session.tick%3==0))
-        for(unsigned i=0;i<session.players;++i)
+    // Preserve the cartridge's finite shared command-channel behavior. Apply
+    // emitted stores in the same stable human/contact/environment order as
+    // the simulation; a later store to one native channel has priority.
+    if(events.physics) {
+        for(unsigned i=0;i<session.players;++i)commit_human(cpu,events.human[i],i==0);
+        for(const auto& e:events.contact)commit_environment(cpu,e,false);
+        for(unsigned i=0;i<session.players;++i) {
+            commit_environment(cpu,events.surface[i],i==0);commit_environment(cpu,events.wall[i],i==0);
+            commit_environment(cpu,events.repair[i],i==0);
+        }
+    }
+    if(events.physics || events.results || (countdown && session.tick%3==0))
+        for(unsigned i=0;i<session.players;++i) {
             if(!ZrCameraUpdatePose(game.cameras[i],session.actors,i,rom,rom_size,backend))
                 vb_stub_abort("versus camera update failed",cpu->pc,i);
-    // Command consumption/audio mixing is connected in the next host stage.
+            ZrNearbyAudio audio;ZrEnvironmentEvents nearby;
+            if(!ZrActorNearbyAudio(session.actors[i],session.actors,i,game.cameras[i],rom,rom_size,audio,nearby,backend))
+                vb_stub_abort("versus nearby audio failed",cpu->pc,i);
+            commit_environment(cpu,nearby,false);
+            if(i==0) {
+                cpu->write32(0x050007f4,audio.speed);cpu->write32(0x050007f8,audio.direction);
+                cpu->write32(0x050007fc,audio.distance);
+            }
+        }
+    if(countdown && session.phase==ZrRacePhase::Countdown
+       && (session.countdown==100 || session.countdown==50))cpu->write8(0x050000f3,5);
+    if(countdown && session.phase==ZrRacePhase::Racing)cpu->write8(0x050000f3,6);
 }
 const char* get_error(void*){return error;}
 int can_pause(void*) {return session.phase!=ZrRacePhase::Countdown && session.phase!=ZrRacePhase::Racing;}
 int video_size(int seat,int* w,int* h,void*) {
-    if(game.menu.screen && seat==-1){*w=384;*h=224;return 1;}
+    if(game.menu.screen && (seat==-1 || launch.network)){*w=384;*h=224;return 1;}
     return ZrVideoSize(session,seat,w,h);
 }
 int video_render(int seat,int eye,uint32_t* out,int w,int h,void*) {
-    if(game.menu.screen && seat==-1)return w==384 && h==224 && ZrVideoMenu(game.menu,eye,out);
-    return ZrVideoRender(session,game.cameras,rom,rom_size,selected_backend(),seat,eye,out,w,h);
+    if(game.menu.screen && (seat==-1 || launch.network))return w==384 && h==224 && ZrVideoMenu(game.menu,eye,out);
+    return ZrVideoRender(session,game.cameras,game.warnings,rom,rom_size,selected_backend(),seat,eye,out,w,h);
 }
 int debug(const char* command,long long id,char* out,size_t capacity,void*) {
     if(std::strcmp(command,"game_status"))return 0;
@@ -194,13 +306,14 @@ int debug(const char* command,long long id,char* out,size_t capacity,void*) {
                i?",":"",i,int32_t(word(body)),int32_t(word(body+4)),int32_t(word(body+8)),word(body+0x34),word(body+0x38),
                word(body+0x3c),word(body+0x48),unsigned(session.result[i].status),session.result[i].finish_field);
     }
-    append("],\"menu\":{\"screen\":%u,\"highlight\":%u,\"row\":%u,\"players\":%u,\"course\":%u,\"ready_mask\":%u}}",
+    append("],\"countdown\":%u,\"menu\":{\"screen\":%u,\"highlight\":%u,\"row\":%u,\"players\":%u,\"course\":%u,\"ready_mask\":%u}}",
+           session.countdown,
            game.menu.screen,game.menu.highlight,game.menu.row,game.menu.players,game.menu.course,game.menu.ready_mask);
     if(used>=capacity)std::snprintf(out,capacity,"{\"ok\":false,\"error\":\"Game status capacity\"}");
     return 1;
 }
 }
 VB_MOD_CONSTRUCTOR(register_versus_host) {
-    const VbGameHost adapter{"zero-racers.versus",nullptr,option,get_error,initialize,field,can_pause,debug,video_size,video_render};
+    const VbGameHost adapter{"zero-racers.versus",nullptr,option,get_error,initialize,field,can_pause,debug,video_size,video_render,4};
     if(!vb_game_host_register(&adapter))vb_stub_abort("cannot register versus host",0,0);
 }

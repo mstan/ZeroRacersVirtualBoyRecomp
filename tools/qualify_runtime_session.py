@@ -38,6 +38,11 @@ def main():
                         count=min(remaining,segment['frames']);c.command('set_input',pad=segment.get('pad',0))
                         while count:
                             n=min(32,count);c.command('replay_frames',frames=n);count-=n;remaining-=n
+                            # Start the moving audit at the first published
+                            # racing field. Standing idle for a fixed boot
+                            # frame can destroy a racer on a wall beforehand.
+                            if c.command('game_status')['phase']==3:
+                                count=remaining=0;break
                         if not remaining:break
                 assert remaining==0
                 status=c.command('game_status');assert status['players']==a.players and status['phase'] in (3,4),status

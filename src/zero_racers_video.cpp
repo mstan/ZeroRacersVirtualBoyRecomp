@@ -15,6 +15,7 @@ struct ViewCache {
     ZrWorldState world;
     std::array<ZrActorState,6> actors;
     ZrCameraState camera;
+    int32_t model_bias=0;
     ZrEyePlanes planes;
     ZrEyeTags tags;
 };
@@ -56,18 +57,21 @@ void standings(Frame& f,const ZrSessionState& session) {
         std::snprintf(line,sizeof(line),"P%u  %s",i+1,status(session.result[i].status));text(f,64,64+i*32,line);
         text(f,224,64+i*32,session.result[i].status==ZrRacerStatus::Finished?time:"--:--:--");
     }
+    if(session.phase==ZrRacePhase::Results)text(f,64,208,"START:REMATCH  B:CHANGE RACE",4);
 }
 bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& cameras,
+          const std::array<ZrWarningState,4>& warnings,
           const uint8_t* rom,size_t size,ZrNativeCall native,unsigned seat,int eye,uint32_t* out) {
     auto& saved=cache[seat];
+    const int32_t bias=session.result[seat].status==ZrRacerStatus::Racing?int32_t(warnings[seat].display_bias):0;
     if(!saved.valid || std::memcmp(&saved.world,&session.world,sizeof(saved.world))
        || std::memcmp(&saved.actors,&session.actors,sizeof(saved.actors))
-       || std::memcmp(&saved.camera,&cameras[seat],sizeof(saved.camera))) {
+       || std::memcmp(&saved.camera,&cameras[seat],sizeof(saved.camera)) || saved.model_bias!=bias) {
         auto view=std::make_unique<ZrViewGeometry>();
         ZrEyePlanes planes{};auto tags=std::make_unique<ZrEyeTags>();
-        if(!ZrCameraBuildFromPose(*view,cameras[seat],session.world,session.actors,seat,rom,size,native)
+        if(!ZrCameraBuildFromPose(*view,cameras[seat],session.world,session.actors,seat,rom,size,native,bias,session.players)
            || !ZrRasterGeometry(*view,planes,rom,size,native,tags.get()))return false;
-        saved.world=session.world;saved.actors=session.actors;saved.camera=cameras[seat];
+        saved.world=session.world;saved.actors=session.actors;saved.camera=cameras[seat];saved.model_bias=bias;
         saved.planes=planes;saved.tags=*tags;saved.valid=true;
     }
     frame.sources.fill({});
@@ -135,15 +139,18 @@ int ZrVideoMenu(const ZrMenuState& menu,int eye,uint32_t* out) {
 }
 int ZrVideoSize(const ZrSessionState& s,int seat,int* width,int* height) {
     if(s.phase==ZrRacePhase::Empty || s.phase==ZrRacePhase::Ready || !width || !height || seat<-1 || seat>=int(s.players))return 0;
+    if(s.phase==ZrRacePhase::Results){*width=384;*height=224;return 1;}
     *width=seat>=0 || s.players==2?384:768;*height=seat>=0?224:448;return 1;
 }
 int ZrVideoRender(const ZrSessionState& s,const std::array<ZrCameraState,4>& cameras,
+                  const std::array<ZrWarningState,4>& warnings,
                   const uint8_t* rom,size_t size,ZrNativeCall native,int seat,int eye,uint32_t* out,int width,int height) {
     int w,h;if(!out || !ZrVideoSize(s,seat,&w,&h) || width!=w || height!=h || eye<0 || eye>1)return 0;
-    if(seat>=0)return draw(s,cameras,rom,size,native,unsigned(seat),eye,out);
+    if(seat>=0)return draw(s,cameras,warnings,rom,size,native,unsigned(seat),eye,out);
+    if(s.phase==ZrRacePhase::Results)return draw(s,cameras,warnings,rom,size,native,0,eye,out);
     std::fill_n(out,size_t(w)*h,0xff000000u);
     for(unsigned i=0;i<s.players;++i) {
-        if(!draw(s,cameras,rom,size,native,i,eye,pane.data()))return 0;
+        if(!draw(s,cameras,warnings,rom,size,native,i,eye,pane.data()))return 0;
         const unsigned x=s.players==2?0:(i%2)*384,y=s.players==2?i*224:(i/2)*224;
         for(unsigned row=0;row<224;++row)std::copy_n(pane.data()+row*384,384,out+(y+row)*w+x);
     }

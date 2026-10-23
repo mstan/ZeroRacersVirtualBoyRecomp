@@ -5,6 +5,8 @@
 #include "zero_racers_session.h"
 #include "zero_racers_font.h"
 #include "zero_racers_bus.h"
+#include "zero_racers_audio.h"
+#include "zero_racers_warning.h"
 #include "v810_interpreter.h"
 #include "vb_crc32.h"
 #include <algorithm>
@@ -223,6 +225,60 @@ int main(int argc,char** argv) {
                 throw std::runtime_error("Initial course models differ from native setup");
             }
             std::cout<<"Native course/grid/profile initialization matches stock result\n";
+        }
+        if(before.pc==0xfff0f6d6u) {
+            ZrWorldState world;ZrCameraState camera;std::array<ZrActorState,6> actors{};
+            world.course=u32(original.wram.data()+0x1058);
+            std::copy_n(original.wram.begin()+0xd270,world.models.size(),world.models.begin());
+            camera.mode=u32(original.wram.data()+0x10ac);
+            std::copy_n(original.wram.begin()+0x10b0,16,camera.smoothing.begin());
+            std::copy_n(original.wram.begin()+0x11f0,24,camera.pose.begin());
+            for(unsigned i=0;i<actors.size();++i)
+                std::copy_n(original.wram.begin()+0xdb70+i*0xa0,0xa0,actors[i].body.begin());
+            auto view=std::make_unique<ZrViewGeometry>();
+            if(!ZrCameraBuildFromPose(*view,camera,world,actors,u32(original.wram.data()+0x1100),
+                original.rom.data(),original.rom.size(),nullptr,int32_t(u32(original.wram.data()+0x114c)))
+               || view->edges!=u32(end.data()+0x10c8) || view->vertices!=u32(end.data()+0x10cc)
+               || view->lines!=expected.gpr[10]
+               || !std::equal(view->vertex.begin(),view->vertex.begin()+view->vertices*12,end.begin()+0x1208)
+               || !std::equal(view->edge.begin(),view->edge.begin()+view->edges*8,end.begin()+0x4220)
+               || !std::equal(view->line.begin(),view->line.begin()+view->lines*32,end.begin()+0x5230))
+                throw std::runtime_error("View-owned warning bias geometry differs from native pipeline");
+            std::cout<<"View-owned warning geometry matches native active display list\n";
+        }
+        if(before.pc==0xfff18c18u && argc==8) {
+            const auto video_after=file(argv[7]);
+            if(f.video!=video_after)throw std::runtime_error("Native warning VIP world mismatch");
+            ZrWarningState warning;ZrActorState actor;
+            std::copy_n(original.wram.begin()+(before.gpr[6]&65535),actor.body.size(),actor.body.begin());
+            warning.previous_damage=u32(original.wram.data()+0x1168);
+            warning.model_bias=u32(original.wram.data()+0x114c);
+            std::copy_n(original.video.begin()+0x3db00,32,warning.power_world.begin());
+            const auto previous_bias=warning.model_bias;ZrEnvironmentEvents commands;
+            if(!ZrActorWarning(warning,actor,u32(original.wram.data()+0x1048),
+                original.rom.data(),original.rom.size(),commands)
+               || warning.display_bias!=previous_bias || warning.model_bias!=u32(end.data()+0x114c)
+               || warning.previous_damage!=u32(end.data()+0x1168)
+               || !std::equal(warning.power_world.begin(),warning.power_world.end(),video_after.begin()+0x3db00)
+               || bool(commands.written&1)!=bool(f.writes.count(0x05001160))
+               || ((commands.written&1) && commands.native_1160!=u32(end.data()+0x1160)))
+                throw std::runtime_error("Per-view warning differs from original native outputs");
+            std::cout<<"Per-view warning matches original native outputs\n";
+        }
+        if(before.pc==0xfff0ed56u) {
+            std::array<ZrActorState,6> actors{};ZrCameraState camera{};
+            const unsigned selected=u32(original.wram.data()+0x1100);
+            for(unsigned i=0;i<6;++i)std::copy_n(original.wram.begin()+0xdb70+i*0xa0,0xa0,actors[i].body.begin());
+            std::copy_n(original.wram.begin()+0x11f0,camera.pose.size(),camera.pose.begin());
+            auto& actor=actors.at(selected);actor.native_1104=u32(original.wram.data()+0x1104);
+            ZrNearbyAudio audio;ZrEnvironmentEvents commands;
+            if(!ZrActorNearbyAudio(actor,actors,selected,camera,original.rom.data(),original.rom.size(),audio,commands)
+               || actor.native_1104!=u32(end.data()+0x1104) || audio.speed!=u32(end.data()+0x7f4)
+               || audio.direction!=u32(end.data()+0x7f8) || audio.distance!=u32(end.data()+0x7fc)
+               || (f.writes.count(0x050000f2u) && (!(commands.written&8) || commands.native_f2!=end[0xf2]))
+               || (!f.writes.count(0x050000f2u) && commands.written))
+                throw std::runtime_error("Per-actor nearby audio differs from native outputs");
+            std::cout<<"Selected-actor passing sound and spatial engine parameters match native result\n";
         }
         if(before.pc==0xfff24aa2u) {
             ZrWorldState world{},prepared;

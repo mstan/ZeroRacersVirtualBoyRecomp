@@ -18,6 +18,9 @@ struct ZrViewGeometry {
     std::array<uint32_t,1026> line_tags{};
 };
 enum class ZrCameraStage { Pose, Sector, Models, Tunnel, Project, Clip };
+struct ZrModelDisplayList {uint32_t count=0;std::array<uint8_t,84*32> models{};};
+bool ZrComposeRepairModels(ZrModelDisplayList&,const ZrWorldState&,
+                            const std::array<ZrActorState,6>&,unsigned players,const uint8_t*,size_t);
 // Advance the logical camera only at the fixed simulation cadence. View
 // generation below consumes that frozen pose and may repeat without moving it.
 bool ZrCameraUpdatePose(ZrCameraState&,const std::array<ZrActorState,6>&,unsigned slot,
@@ -29,13 +32,13 @@ bool ZrCameraPrepareWorld(ZrWorldState& output,const ZrWorldState&,uint32_t near
                           ZrNativeCall native=nullptr);
 bool ZrCameraBuildStage(ZrCameraStage,ZrViewGeometry&,const ZrWorldState&,
                         const std::array<ZrActorState,6>&,unsigned slot,
-                        const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
+                        const uint8_t* rom,size_t,ZrNativeCall native=nullptr,const ZrModelDisplayList* list=nullptr);
 bool ZrCameraBuild(ZrViewGeometry&,const ZrWorldState&,
                    const std::array<ZrActorState,6>&,unsigned slot,
                    const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
 bool ZrCameraBuildFromPose(ZrViewGeometry&,const ZrCameraState&,const ZrWorldState&,
                            const std::array<ZrActorState,6>&,unsigned slot,
-                           const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
+                           const uint8_t* rom,size_t,ZrNativeCall native=nullptr,int32_t own_model_bias=0,unsigned repair_players=0);
 using ZrEyePlanes=std::array<std::array<uint8_t,0x6000>,2>;
 using ZrEyeTags=std::array<std::array<uint32_t,384*224>,2>;
 // Original first-writer line rasterizer. Both eye planes are independent.

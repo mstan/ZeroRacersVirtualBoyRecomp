@@ -66,9 +66,33 @@ def main():
                 pulse(4096);fields(900)
                 c.command('game_inputs',**{f'pad{i}':16 for i in range(a.players)});fields(90)
                 assert c.command('state_digest')['digest']==digest,'Setup restore/launch replay differs'
-                report['backends'][mode]={'status':after,'digest':digest,'setup_restore_replay':True}
+                # Finish by explicit sealed retirement, then exercise the real
+                # native GP stack's reinitialization for rematch and new course.
+                def finish():
+                    c.command('game_inputs',**{f'command{i}':1 for i in range(a.players-1)});fields(1)
+                    c.command('game_inputs');fields(4)
+                    result=c.command('game_status');assert result['phase']==4,result
+                    assert result['actors'][-1]['status']==5 and result['actors'][-1]['finish_field']==0,result
+                finish();pulse(4096);fields(900)
+                rematch=c.command('game_status');assert rematch['phase']==3 and rematch['players']==a.players,rematch
+                c.command('save_state',path=(folder/'after-rematch.state').as_posix())
+                finish();pulse(8)
+                assert c.command('game_status')['menu']['screen']==2,c.command('game_status')
+                pulse(1024);pulse(256) # course row, next native course table
+                for i in range(1,a.players):pulse(4,i)
+                c.command('save_state',path=(folder/'change-race.state').as_posix())
+                assert c.command('game_status')['menu']['course']==2
+                pulse(4096);fields(900)
+                changed=c.command('game_status');assert changed['phase']==3 and changed['course']==2,changed
+                changed_digest=c.command('state_digest')['digest']
+                c.command('save_state',path=(folder/'after-change.state').as_posix())
+                c.command('load_state',path=(folder/'change-race.state').as_posix());pulse(4096);fields(900)
+                assert c.command('state_digest')['digest']==changed_digest,'Change-race setup restore/reinitialize differs'
+                report['backends'][mode]={'status':after,'digest':digest,'setup_restore_replay':True,
+                    'rematch':rematch,'changed_course':changed,'changed_digest':changed_digest}
         report['audits']=[]
-        for name in ('title-vs.png','setup.png','after.state','canvas-eye0.png','canvas-eye1.png'):
+        assert report['backends']['native']['changed_digest']==report['backends']['interpreter']['changed_digest']
+        for name in ('title-vs.png','setup.png','after.state','after-rematch.state','after-change.state','canvas-eye0.png','canvas-eye1.png'):
             left=(a.out/'native'/name).read_bytes();right=(a.out/'interpreter'/name).read_bytes()
             report['audits'].append({'name':name,'equal':left==right,'sha256':hashlib.sha256(left).hexdigest()})
             assert left==right,name+' native/portable mismatch'

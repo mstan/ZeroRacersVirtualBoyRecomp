@@ -14,6 +14,9 @@ public:
     // Numeric host fields use explicit guest little-endian byte order. Raw
     // byte spans above already contain the cartridge's little-endian layout.
     bool constant_word(uint32_t address,uint32_t value);
+    // A call-owned immutable header override, used only for a derived draw
+    // list's count. It cannot authorize writes to the cartridge.
+    bool rom_word(uint32_t address,uint32_t value);
     bool word(uint32_t address,uint32_t& value);
     bool track_word(uint32_t address,uint32_t& value,uint32_t& dirty,uint32_t bit);
     using StoreObserver=void (*)(const CPUState*,uint32_t,unsigned,uint32_t,void*);
@@ -26,6 +29,9 @@ private:
     size_t count_=0;
     std::array<std::array<uint8_t,4>,32> constants_{};
     size_t constants_count_=0;
+    struct RomWord {uint32_t address,value;};
+    std::array<RomWord,4> rom_words_{};
+    size_t rom_words_count_=0;
     const uint8_t* rom_;
     size_t rom_size_;
     bool valid_=true;

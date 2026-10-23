@@ -15,6 +15,8 @@ def main():
     p.add_argument('--return-pc', type=lambda s: int(s, 0), required=True)
     p.add_argument('--r6', type=lambda s: int(s, 0), help='Select this native actor argument at entry')
     p.add_argument('--mask-irqs',action='store_true',help='Isolate a pure kernel; this is not device/timing qualification')
+    p.add_argument('--word',action='append',default=[],metavar='ADDRESS=VALUE',
+                   help='Set a fixture word at the stopped entry (repeatable)')
     p.add_argument('--video',action='store_true',help='Capture each eye framebuffer and video RAM for raster comparisons')
     p.add_argument('--port', type=int, default=15931)
     a = p.parse_args()
@@ -44,6 +46,9 @@ def main():
         if a.mask_irqs:
             c.command('psw_set',value=int(before['psw'],0)|0x1000)
             before=c.command('get_registers')
+        for assignment in a.word:
+            address,value=(int(x,0) for x in assignment.split('='))
+            for byte in range(4):c.command('write_ram',addr=address+byte,val=(value>>(byte*8))&255)
         (a.out / 'before-wram.bin').write_bytes(r.memory(0x05000000))
         if a.video:(a.out/'before-vram.bin').write_bytes(r.memory(0,0x40000))
         (a.out / 'before-registers.json').write_text(json.dumps(before, indent=2))

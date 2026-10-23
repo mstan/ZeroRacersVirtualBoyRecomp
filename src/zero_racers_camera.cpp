@@ -68,14 +68,20 @@ bool ZrCameraPrepareWorld(ZrWorldState& output,const ZrWorldState& world,uint32_
 
 bool ZrCameraBuildStage(ZrCameraStage stage,ZrViewGeometry& view,const ZrWorldState& world,
                         const std::array<ZrActorState,6>& actors,unsigned slot,
-                        const uint8_t* rom,size_t size,ZrNativeCall native) {
+                        const uint8_t* rom,size_t size,ZrNativeCall native,const ZrModelDisplayList* list) {
     if(!rom || size!=1048576 || slot>=actors.size() || world.course<1 || world.course>16)return false;
+    if(list && (stage!=ZrCameraStage::Models || list->count<19 || list->count>84))return false;
     if(stage==ZrCameraStage::Pose)return ZrCameraUpdatePose(view.camera,actors,slot,rom,size,native);
     auto next=view;ZrMappedBus bus(rom,size);
     // Records are strided A0 in the cartridge, not sizeof(ZrActorState).
-    for(unsigned i=0;i<actors.size();++i)
+    for(unsigned i=0;!list && i<actors.size();++i)
         bus.constant(0x0500db70u+i*0xa0,actors[i].body.data(),actors[i].body.size());
-    bus.constant(0x0500d270u,world.models.data(),world.models.size());
+    if(list) {
+        // Only the isolated Models kernel sees the expanded list. Its RO
+        // address range replaces actor addresses unused by this kernel.
+        bus.constant(0x0500d270u,list->models.data(),list->count*32);
+        bus.rom_word(0xfffcb054u+world.course*16+8,list->count);
+    } else bus.constant(0x0500d270u,world.models.data(),world.models.size());
     bus.constant_word(0x05001058u,world.course);
     bus.word(0x050010acu,next.camera.mode);
     bus.map(0x050010b0u,next.camera.smoothing.data(),next.camera.smoothing.size());
@@ -138,13 +144,35 @@ bool ZrCameraBuild(ZrViewGeometry& view,const ZrWorldState& world,
 }
 bool ZrCameraBuildFromPose(ZrViewGeometry& view,const ZrCameraState& camera,
                            const ZrWorldState& world,const std::array<ZrActorState,6>& actors,
-                           unsigned slot,const uint8_t* rom,size_t size,ZrNativeCall native) {
+                           unsigned slot,const uint8_t* rom,size_t size,ZrNativeCall native,int32_t own_model_bias,unsigned repair_players) {
+    if(slot>=actors.size() || (own_model_bias!=0 && own_model_bias!=80 && own_model_bias!=-80))return false;
     ZrViewGeometry next{};next.camera=camera;
     if(!ZrCameraBuildStage(ZrCameraStage::Sector,next,world,actors,slot,rom,size,native))return false;
     ZrWorldState prepared;
     if(!ZrCameraPrepareWorld(prepared,world,next.near_sector,next.far_sector,rom,size,native))return false;
-    for(auto stage:{ZrCameraStage::Models,ZrCameraStage::Tunnel,
-                    ZrCameraStage::Project,ZrCameraStage::Clip})
+    // Native F6D6 temporarily offsets only the selected render model. Keep
+    // that operation inside this view's prepared copy, including wraparound.
+    auto* angle=prepared.models.data()+slot*32+20;
+    const uint32_t old=angle[0]|uint32_t(angle[1])<<8|uint32_t(angle[2])<<16|uint32_t(angle[3])<<24;
+    const uint32_t biased=old+uint32_t(own_model_bias);
+    for(unsigned i=0;i<4;++i)angle[i]=uint8_t(biased>>(i*8));
+    ZrModelDisplayList list;
+    if(repair_players && !ZrComposeRepairModels(list,prepared,actors,repair_players,rom,size))return false;
+    if(!ZrCameraBuildStage(ZrCameraStage::Models,next,prepared,actors,slot,rom,size,native,repair_players?&list:nullptr))return false;
+    for(auto stage:{ZrCameraStage::Tunnel,ZrCameraStage::Project,ZrCameraStage::Clip})
         if(!ZrCameraBuildStage(stage,next,prepared,actors,slot,rom,size,native))return false;
     view=next;return true;
+}
+bool ZrComposeRepairModels(ZrModelDisplayList& output,const ZrWorldState& world,
+                            const std::array<ZrActorState,6>& actors,unsigned players,const uint8_t* rom,size_t size) {
+    if(!rom || size!=1048576 || world.course<1 || world.course>16 || players<1 || players>4)return false;
+    const auto* header=rom+0xcb054+world.course*16+8;
+    const unsigned count=header[0]|unsigned(header[1])<<8|unsigned(header[2])<<16|unsigned(header[3])<<24;
+    if(count<19 || count>72)return false;
+    ZrModelDisplayList next;next.count=count+(players-1)*4;
+    std::copy_n(world.models.begin(),12*32,next.models.begin());
+    for(unsigned i=0;i<players;++i)
+        std::copy(actors[i].repair_models.begin(),actors[i].repair_models.end(),next.models.begin()+(12+i*4)*32);
+    std::copy(world.models.begin()+16*32,world.models.begin()+count*32,next.models.begin()+(12+players*4)*32);
+    output=next;return true;
 }

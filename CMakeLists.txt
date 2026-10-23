@@ -4,6 +4,8 @@ include(CTest)
 set(VBRECOMP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vbrecomp" CACHE PATH "vbrecomp checkout")
 set(RECOMP_UI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui" CACHE PATH "recomp-ui checkout")
 option(ZERO_RACERS_UI "Build the shared launcher and settings" ON)
+option(ZERO_RACERS_NETPLAY "Build the shared versus network host" ON)
+set(VBRECOMP_NETPLAY ${ZERO_RACERS_NETPLAY})
 if(NOT EXISTS "${VBRECOMP_ROOT}/CMakeLists.txt")
     message(FATAL_ERROR "Initialize dependencies with git submodule update --init --recursive, or set VBRECOMP_ROOT.")
 endif()
@@ -30,7 +32,7 @@ endif()
 add_subdirectory("${VBRECOMP_ROOT}" vbrecomp)
 
 add_library(zero-racers-routine STATIC src/zero_racers_routine.cpp src/zero_racers_actor.cpp
-    src/zero_racers_bus.cpp src/zero_racers_world.cpp src/zero_racers_camera.cpp src/zero_racers_session.cpp src/zero_racers_font.cpp src/zero_racers_menu.cpp)
+    src/zero_racers_bus.cpp src/zero_racers_world.cpp src/zero_racers_camera.cpp src/zero_racers_session.cpp src/zero_racers_font.cpp src/zero_racers_menu.cpp src/zero_racers_audio.cpp src/zero_racers_warning.cpp)
 target_include_directories(zero-racers-routine PUBLIC src "${VBRECOMP_ROOT}/runtime/include")
 target_compile_features(zero-racers-routine PUBLIC cxx_std_17)
 if(BUILD_TESTING)
@@ -80,7 +82,8 @@ vb_state_add_identity(vb-runtime src/zero_racers_color.cpp src/zero_racers_host.
     src/zero_racers_bus.h src/zero_racers_bus.cpp src/zero_racers_world.h src/zero_racers_world.cpp
     src/zero_racers_camera.h src/zero_racers_camera.cpp src/zero_racers_session.h src/zero_racers_session.cpp
     src/zero_racers_font.h src/zero_racers_font.cpp src/zero_racers_video.h src/zero_racers_video.cpp
-    src/zero_racers_menu.h src/zero_racers_menu.cpp CMakeLists.txt)
+    src/zero_racers_menu.h src/zero_racers_menu.cpp src/zero_racers_audio.h src/zero_racers_audio.cpp
+    src/zero_racers_warning.h src/zero_racers_warning.cpp CMakeLists.txt)
 if(ZERO_RACERS_UI)
     add_custom_target(zero-racers-assets
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vb-runtime>/assets/img"

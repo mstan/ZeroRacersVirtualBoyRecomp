@@ -17,7 +17,10 @@ bool settle(ZrSessionState& state) {
     }
     if(!remaining || survivors<=1) {
         if(survivors==1)for(unsigned i=0;i<state.players;++i)
-            if(racing(state,i))state.result[i].status=ZrRacerStatus::Survived;
+            if(racing(state,i)) {
+                state.result[i].status=ZrRacerStatus::Survived;
+                word(state.actors[i].body.data()+0x34,0);
+            }
         state.phase=ZrRacePhase::Results;state.menu_mask=0;return true;
     }
     return false;
@@ -122,6 +125,7 @@ bool ZrSessionStep(ZrSessionState& state,const std::array<ZrSeatInput,ZrMaxPlaye
         if(racing(next,i) && ((inputs[i].command&ZrInputForfeit)
             || (was_open && (held&VB_PAD_SELECT) && !(previous&VB_PAD_SELECT)))) {
             next.result[i].status=ZrRacerStatus::Forfeit;next.menu_mask&=~(1u<<i);
+            word(next.actors[i].body.data()+0x34,0);
         }
     }
     if(settle(next)){output.results=true;state=next;events=output;return true;}
@@ -151,7 +155,9 @@ bool ZrSessionStep(ZrSessionState& state,const std::array<ZrSeatInput,ZrMaxPlaye
             if(crossed[i] && word(next.actors[i].body.data()+0x48)==5) {
                 next.result[i]={ZrRacerStatus::Finished,next.race_fields};
             } else if(word(next.actors[i].body.data()+0x38)==800)next.result[i].status=ZrRacerStatus::Crashed;
-            if(!racing(next,i))next.menu_mask&=~(1u<<i);
+            if(!racing(next,i)) {
+                next.menu_mask&=~(1u<<i);word(next.actors[i].body.data()+0x34,0);
+            }
         }
         ZrWorldAdvanceEffects(next.world);ZrWorldSyncRacerModels(next.world,next.actors);
         output.results=settle(next);
