@@ -45,12 +45,57 @@ Press **Escape** to open settings during play. Close the game normally to save.
 press **S** to save or **Enter** to load. **F8** opens the rewind filmstrip:
 use Left/Right to browse, Enter to resume there, or Escape to cancel.
 Controller shortcuts are Select+R for save states and Select+L for rewind;
-A selects/loads, X saves, and B cancels. Both menus pause the game.
+A selects/loads, X saves, and B cancels. Both menus pause single-player play.
 
 Rewind keeps 32 snapshots every six frames by default; Settings controls its
 enablement, depth and interval. F5/F6 remain quick save/load shortcuts.
 Snapshots belong to the current build; native cartridge progress is saved
-separately. Netplay is not included.
+separately.
+
+## Versus mode
+
+On **Mods**, enable **Multiplayer / VS (Experimental)** before launching. The bundled
+mod is installed and disabled by default; turning it off restores the stock
+four-choice title. Changes take effect when the game restarts. Then choose
+**VS MODE** on the title screen for two to four human racers. Choose
+the course and machines, have every racer press A to ready, then start the
+race. Assign local controllers in the launcher's controller settings. Two
+players share a top/bottom split; three or four use a four-pane layout, with
+standings in the spare three-player pane. Each racer sees one eye.
+Small P1-P4 tags above visible ships identify each racer in every view.
+
+<p>
+  <img src="docs/multiplayer-player1.png" alt="Player 1's independent view with P1 and P2 ship markers" width="49%">
+  <img src="docs/multiplayer-player2.png" alt="Player 2's independent view in the same multiplayer race" width="49%">
+</p>
+
+*Player 1 and Player 2 in a network race, each with an independent camera.
+The optional color mod is enabled.*
+
+<p>
+  <img src="docs/multiplayer-2p-split.png" alt="Local two-player race in top and bottom split screen" width="49%">
+  <img src="docs/multiplayer-4p-split.png" alt="Local four-player race with four independent camera panes" width="49%">
+</p>
+
+*Local split screen: two players on the left, four players on the right.*
+
+For remote play, create or join a room through **Netplay** in the launcher.
+LAN and Direct IP use the local network; online rooms use the shared lobby
+and host ICE transport. Every computer controls one racer and shows that
+racer's full view. Use identical game builds, ROMs and enabled mod contents.
+There is no mixed couch/online mode, spectator mode or joining a running race.
+
+Start opens a live race menu; the other racers keep moving. Select in that
+menu retires your racer. Finished racers wait for the rest; equal-field
+finishes tie, and a last survivor wins without a fabricated finish time.
+At results, Start rematches, B changes the race, and Select returns to the
+title locally or the waiting room online. F10 leaves an online race for its
+room; the other peers also return. Losing the host ends that match.
+
+F7/F8 are available between local races and operate on the whole session.
+Online, the host can use F7 between races to save or load everyone together;
+online rewind is unavailable. Multiplayer execution snapshots are separate
+from native single-player cartridge progress.
 
 When updating, close the game and extract the new ZIP into its folder. Keep
 `vbrecomp.cfg`, `keybinds.ini`, `saves/` and `mods/` to retain your setup and progress.

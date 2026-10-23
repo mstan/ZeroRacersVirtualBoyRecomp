@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "cartridge_sha256": "47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7",
+  "status": "implementation in progress; headless adapters are not a multiplayer release",
+  "native_reference_executable_sha256": "72cfe70cd85f70293d3bdee210350a35b44ead175aa67ae749f0b7685aa54d81",
+  "native_regions": {
+    "actors": {
+      "address": "0x0500DB70",
+      "count": 6,
+      "stride": 160
+    },
+    "models": {
+      "address": "0x0500D270",
+      "capacity": 72,
+      "stride": 32
+    },
+    "course_headers": {
+      "rom_offset": "0xCB054",
+      "stride": 16,
+      "words": [
+        "waypoint count",
+        "waypoint pointer",
+        "total model count",
+        "model data pointer"
+      ],
+      "note": "Total model count includes records 0..17. Authored course data starts at record 18; it is not an additional object count."
+    },
+    "grids": {
+      "rom_offset": "0xDD594",
+      "courses": 16,
+      "stride": 128,
+      "seats": 4
+    },
+    "profiles": {
+      "rom_offset": "0xDDD94",
+      "stride": 20,
+      "selection_rows": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "raw_handling_indices": [
+        3,
+        2,
+        1,
+        0
+      ]
+    }
+  },
+  "kernels": [
+    {
+      "entry": "0xFFF151C4",
+      "purpose": "human mechanics",
+      "qualification": "100 input/profile/polarity cases; actor, personal latches and emitted commands"
+    },
+    {
+      "entry": "0xFFF247B2",
+      "purpose": "nearest segment and forward lap crossing",
+      "qualification": "captured native boundary and terminal crossing fixture"
+    },
+    {
+      "entry": "0xFFF11C4A",
+      "purpose": "swept human contact",
+      "qualification": "40 pair/slot/separation/speed boundary cases"
+    },
+    {
+      "entry": "0xFFF1207E",
+      "purpose": "walls and environment",
+      "qualification": "28 position/profile boundary cases"
+    },
+    {
+      "entry": "0xFFF12CCC",
+      "purpose": "interactive surfaces",
+      "qualification": "28 interaction-class/inventory boundary cases"
+    },
+    {
+      "entry": "0xFFF248EE",
+      "purpose": "repair",
+      "qualification": "144 rectangle/profile/damage boundary cases"
+    },
+    {
+      "entry": "0xFFF0EF40",
+      "purpose": "camera pose",
+      "qualification": "native CPU/memory boundary and read-only typed view"
+    },
+    {
+      "entry": "0xFFF13D64",
+      "purpose": "visible sectors",
+      "qualification": "native CPU/memory boundary and read-only typed view"
+    },
+    {
+      "entry": "0xFFF13F58",
+      "purpose": "model geometry",
+      "qualification": "native CPU/memory boundary and read-only typed view"
+    },
+    {
+      "entry": "0xFFF1436E",
+      "purpose": "tunnel geometry",
+      "qualification": "native CPU/memory boundary and read-only typed view"
+    },
+    {
+      "entry": "0xFFF14A3E",
+      "purpose": "view transformation",
+      "qualification": "native CPU/memory boundary and read-only typed view"
+    },
+    {
+      "entry": "0xFFF14E16",
+      "purpose": "clipping/projection",
+      "qualification": "interrupt-isolated native CPU/memory boundary and read-only typed view"
+    },
+    {
+      "entry": "0xFFF13AD2",
+      "purpose": "first-writer rasterization",
+      "qualification": "interrupt-isolated native CPU/memory boundary; left and right framebuffer bytes compared separately"
+    }
+  ],
+  "native_policy": {
+    "controls": "Human kernel tests native RT (0x10) for acceleration, LT (0x20) for braking and newly pressed A (0x00040000 in packed input) for boost. A alone is not an accelerator.",
+    "physics_cadence": "FFF0FC02 waits for WRAM118A >= 3, then clears it; one mechanics update per three display fields",
+    "finish": "Initial start crossing clears +50 without incrementing +48. Five subsequent complete circuits advance +48 from0 to5. Versus records a finish at that crossing field, before same-field crash: this immediate result ordering is the graft policy, not a claim about stock finish-handler timing.",
+    "crash": "Native damage +38 reaches 800; finish is checked before crash in a shared update",
+    "contact": "The stock two-body response identifies the human through global10FC/model identity. The versus pair view normalizes this classification for both humans, retains each raw handling profile and restores chosen render identities.",
+    "initialization": "Native setup clears +58 for its selected human and allocates +64 to CPUs. Every versus racer receives the human form.",
+    "pair_order": "Each unordered pair once, in ascending slot order; new versus simulation profile",
+    "link": "No usable link protocol has been established. The communication IRQ vector contains a thunk; its presence is not evidence of multiplayer implementation or absence.",
+    "warning": "18C18 calculates the native power-world/blink and roll bias0/+80/-80 from damage and1048 phase. F6D6 temporarily adds114C at model+20, then restores it atF758. Each view owns its copied model and next-update latch; actor physics/shared world never receive this angle. Native172B0 also advances the primary1168 damage-message latch."
+  },
+  "runtime_qualification": {
+    "shared_tick": "48 count/course moving starts, all16 waypoint tables over five complete circuits, terminal/tie/survivor policy,90-field replay; portable and generated-native traces/eight eye images equal.",
+    "two_player_host": "Real runtime to field2600, then90 fields with separate seat inputs; native and interpreter complete snapshots, each eye and emulated PCM agree",
+    "lifecycle": "Actual2/3/4p host current-build save/load/replay, separate inputs/eyes, PCM and rbengine rewind pass; stock SP F7/F8 regression passes. Latest launcher/online-mode edits require rerun.",
+    "framework_regression": "10 core CTests passed at prior local checkpoint, including four virtual controllers. Independent rollback-history isolation test added and pending the new build.",
+    "audio_limit": "Original human/contact/environment command forwarding and192 original ED56 spatial/passing cases pass. Emulated PCM replay/native-interpreter equality passes. Audible final output is still human QA.",
+    "warning": "128 original18C18 CPU/VRAM leaf boundaries and full native F6D6-to-F730 active display lists at0/+80/-80 agree.",
+    "repair": "All16 original repair rectangles with4 simultaneous per-actor beam groups render through native and portable adapters with matching both-eye planes. Expanded read-only list preserves spark/seat-beam/course order.",
+    "network": "Actual raw UDP2p native/interpreter and3/4p native processes agree on full parked states and all racer-eye PNGs at2596 ticks. 2p30ms-per-side delay,+/-8ms jitter,3% loss and forced late row executes one real correction/resim per peer and agrees at2660 with zero desync. Launcher/Internet/multi-seat-loss/state-operation coverage is not established."
+  },
+  "known_remaining": [
+    "qualify shared-launcher native online setup and moved-seat mapping",
+    "four-seat shared LAN/Direct-IP waiting rooms, loss/stale-claim/readiness/start/rematch cases",
+    "online/ICE or relay peer qualification; multi-peer rollback/loss/disconnect/capability refusal",
+    "synchronized between-race online state operations and soft return; no online rewind",
+    "safe local return to stock single-player/native persistence",
+    "full-race mechanics/audio/HUD fidelity and stock independent-reference regression",
+    "portable/other-target builds and balanced A/B CPU measurements with A/A noise control",
+    "combined normal-window/normal-audio owner review before final integration"
+  ]
+}
