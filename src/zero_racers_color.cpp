@@ -3,6 +3,8 @@
 #include "mod_runtime.h"
 #include "memory.h"
 #include "cpu_state.h"
+#include "savestate.h"
+#include "stub_abort.h"
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -168,6 +170,9 @@ void activate() {
 }
 
 VB_MOD_CONSTRUCTOR(register_color) {
+    if (!vb_state_register_presentation("zero-racers.edge-tags.v1", edge_tags.data(), sizeof(edge_tags))
+        || !vb_state_register_presentation("zero-racers.line-tags.v1", line_tags.data(), sizeof(line_tags)))
+        vb_stub_abort("cannot register presentation state", 0, 0);
     vb_renderer_track_texels();
     vb_memory_register_write_observer(observe_store);
     vb_mod_register_exclusive_plugin("zero-racers.full-color", "video.renderer", activate);

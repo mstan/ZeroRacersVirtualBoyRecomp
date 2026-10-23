@@ -41,6 +41,11 @@ L/R, Enter is Start, and Right Shift is Select. Hold Tab for turbo.
 Use **Configure** to remap controls and **Settings** for display and audio.
 Press **Escape** to open settings during play. Close the game normally to save.
 
+F5 saves an execution snapshot and F8 loads it. These snapshots belong to the
+current build; native cartridge progress is saved separately. Launch with
+`--rewind-frames 32` to keep local frame history, then hold Backspace to rewind
+and release it to resume. Rewind is disabled by default. Netplay is not included.
+
 When updating, close the game and extract the new ZIP into its folder. Keep
 `vbrecomp.cfg`, `keybinds.ini`, `saves/` and `mods/` to retain your setup and progress.
 
