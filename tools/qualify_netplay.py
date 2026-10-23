@@ -1,7 +1,8 @@
 """Actual independent Zero Racers processes over the shared LAN hub.
 
-Compare complete state and each eye at an agreed parked tick. This harness
-does not certify Internet traversal, the lobby UI or synchronized state files.
+Compare complete state and each eye at an agreed parked tick. Optional state
+operations exercise the real F7 UI when windowed. This harness does not certify
+Internet traversal or visual lobby interaction.
 """
 import argparse
 import hashlib
@@ -13,6 +14,7 @@ import subprocess
 from pathlib import Path
 import sys
 import time
+import traceback
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -32,6 +34,7 @@ def main():
     p.add_argument('--room-capacity',type=int,choices=(2,3,4))
     p.add_argument('--host-seat',type=int,choices=(0,1,2,3))
     p.add_argument('--window',action='store_true',help='Dummy SDL windows; check the actual one-eye game texture on every peer')
+    p.add_argument('--state-operations',action='store_true',help='Qualify host-synchronized between-race slots and repeated input epoch resets')
     a=p.parse_args();a.out=a.out.resolve();a.out.mkdir(parents=True,exist_ok=False)
     if a.window and not a.shared_room:p.error('--window requires --shared-room')
     sys.path.insert(0,str(a.framework.resolve()/'tools'));from cosim import Runner
@@ -81,6 +84,7 @@ def main():
             folder=a.out/f'peer-{slot}';folder.mkdir()
             save=folder/'protected-native.sav';native=bytes((i*29+7+slot)&255 for i in range(65536));save.write_bytes(native)
             saves.append((save,native));extra+=['--save',save.as_posix()]
+            extra+=['--state-file',(folder/'quick.state').as_posix()]
             settings={'RNET_SIM_LATENCY_MS':str(a.latency_ms),'RNET_SIM_JITTER_MS':str(a.jitter_ms),
                       'RNET_SIM_LOSS_PCT':str(a.loss_pct),'RNET_SIM_SEED':str(91231+slot),
                       'VB_RB_FORCE_MISPREDICT':str(a.force_mispredict if slot==0 else 0)}
@@ -151,6 +155,9 @@ def main():
                 time.sleep(.005)
             target=max(s['tick'] for s in live)+64
         states=park(target)
+        if a.state_operations:
+            from qualify_online_states import qualify
+            target,states,report['online_states']=qualify(runners,a,park,target)
         for r in runners:r.client.command('pause')
         snapshots=[];games=[]
         for slot,r in enumerate(runners):
@@ -173,7 +180,7 @@ def main():
                     pictures.append(path.read_bytes())
                 assert all(x==pictures[0] for x in pictures),('Eye differs',seat,eye)
                 eyes.append({'seat':seat,'eye':eye,'sha256':hashlib.sha256(pictures[0]).hexdigest()})
-        if a.window:
+        if a.window and not a.state_operations:
             from _imgio import load_png
             for slot,r in enumerate(runners):
                 for pressed in (1,0):r.client.command('host_input',device=0,value=64,pressed=pressed)
@@ -194,10 +201,10 @@ def main():
             'state_sha256':hashlib.sha256(snapshots[0]).hexdigest(),'eyes':eyes,
             'pcm_bytes':len(audio[0]),'pcm_sha256':hashlib.sha256(audio[0]).hexdigest()})
         if a.route:assert all(g['phase'] in (3,4) and g['race_fields']>0 for g in games),'No shared race executed'
-        if a.force_mispredict:assert sum(s['resim'] for s in states)>0,'No actual replay executed'
+        if a.force_mispredict and not a.state_operations:assert sum(s['resim'] for s in states)>0,'No actual replay executed'
         report['conditions']={k:getattr(a,k) for k in ('mixed','shared_room','native_setup_map','room_capacity','host_seat','window','latency_ms','jitter_ms','loss_pct','force_mispredict')}
         report['passed']=True
-    except Exception as error:report['error']=repr(error)
+    except Exception as error:report['error']=repr(error);report['traceback']=traceback.format_exc()
     finally:
         for r in runners:r.close()
     try:
