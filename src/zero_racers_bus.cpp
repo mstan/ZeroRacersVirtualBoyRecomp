@@ -10,6 +10,20 @@ bool ZrMappedBus::track(uint32_t address,void* bytes,size_t size,uint32_t& dirty
     if(!bit || !map(address,bytes,size))return false;
     regions_[count_-1].dirty=&dirty;regions_[count_-1].bit=bit;return true;
 }
+bool ZrMappedBus::constant_word(uint32_t address,uint32_t value) {
+    if(constants_count_==constants_.size())return valid_=false;
+    auto& bytes=constants_[constants_count_++];
+    for(unsigned i=0;i<4;++i)bytes[i]=uint8_t(value>>(i*8));
+    return constant(address,bytes.data(),bytes.size());
+}
+bool ZrMappedBus::word(uint32_t address,uint32_t& value) {
+    if(!map(address,&value,sizeof(value)))return false;
+    regions_[count_-1].scalar=&value;return true;
+}
+bool ZrMappedBus::track_word(uint32_t address,uint32_t& value,uint32_t& dirty,uint32_t bit) {
+    if(!bit || !word(address,value))return false;
+    regions_[count_-1].dirty=&dirty;regions_[count_-1].bit=bit;return true;
+}
 bool ZrMappedBus::constant(uint32_t address,const void* bytes,size_t size) {
     address&=0x07ffffffu;
     if(!bytes || !size || count_==regions_.size() || size>0x08000000u-address
@@ -38,7 +52,12 @@ bool ZrMappedBus::read(void* context,uint32_t address,unsigned width,uint32_t* v
     for(size_t i=0;i<b.count_;++i) {
         const auto& r=b.regions_[i];
         if(address>=r.address && address-r.address<=r.size && width<=r.size-(address-r.address)) {
-            *value=0;for(unsigned j=0;j<width;++j)*value|=uint32_t(r.read[address-r.address+j])<<(8*j);
+            *value=0;
+            for(unsigned j=0;j<width;++j) {
+                const auto offset=address-r.address+j;
+                const uint8_t byte=r.scalar?uint8_t(*r.scalar>>(offset*8)):r.read[offset];
+                *value|=uint32_t(byte)<<(8*j);
+            }
             return true;
         }
     }
@@ -55,7 +74,12 @@ bool ZrMappedBus::write(void* context,uint32_t address,unsigned width,uint32_t v
     for(size_t i=0;i<b.count_;++i) {
         auto& r=b.regions_[i];
         if(r.write && address>=r.address && address-r.address<=r.size && width<=r.size-(address-r.address)) {
-            for(unsigned j=0;j<width;++j)r.write[address-r.address+j]=uint8_t(value>>(8*j));
+            if(b.observer_)b.observer_(b.cpu_,address,width,value,b.observer_context_);
+            for(unsigned j=0;j<width;++j) {
+                const auto offset=address-r.address+j;const uint8_t byte=uint8_t(value>>(8*j));
+                if(r.scalar)*r.scalar=(*r.scalar&~(0xffu<<(offset*8)))|(uint32_t(byte)<<(offset*8));
+                else r.write[offset]=byte;
+            }
             if(r.dirty)*r.dirty|=r.bit;
             return true;
         }

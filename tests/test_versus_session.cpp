@@ -4,6 +4,7 @@
 #include "png_write.h"
 #include "v810_interpreter.h"
 #include <cassert>
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -64,6 +65,29 @@ int main(int argc,char** argv) {
         const std::array<unsigned,4> machines{0,1,2,3};
         std::array<ZrSeatInput,4> inputs{};ZrSessionState state;ZrSessionEvents events;
         unsigned configurations=0;
+        unsigned progress_courses=0;
+        for(unsigned course=1;course<=16;++course) {
+            require(ZrSessionInitialize(state,course,machines,2,1,rom.data(),rom.size()),"Progress grid fixture");
+            const auto* header=rom.data()+0xcb054+course*16;
+            const unsigned count=word(header),points=word(header+4)&0xfffff;
+            auto& actor=state.actors[0];bool crossed=false;
+            // Move through every actual waypoint, preserving the native lap
+            // and wrap guards. No completion flag/counter is injected.
+            std::copy_n(rom.data()+points,12,actor.body.data());
+            require(ZrActorProgress(actor,state.world,rom.data(),rom.size(),crossed,native)
+                && !crossed && word(actor.body.data()+0x48)==0 && word(actor.body.data()+0x50)==0,
+                "Initial start crossing consumes the grid wrap guard");
+            for(unsigned circuit=1;circuit<=5;++circuit) {
+                for(unsigned waypoint=1;waypoint<=count;++waypoint) {
+                    std::copy_n(rom.data()+points+(waypoint%count)*16,12,actor.body.data());
+                    require(ZrActorProgress(actor,state.world,rom.data(),rom.size(),crossed,native),"Native waypoint progression");
+                    require(word(actor.body.data()+0x3c)==waypoint%count,"Progress follows course topology");
+                    require(crossed==(waypoint==count),"Exactly one completed-circuit event");
+                }
+                require(word(actor.body.data()+0x48)==circuit,"Native lap counter counts completed circuits");
+            }
+            ++progress_courses;
+        }
         for(unsigned players=2;players<=4;++players)for(unsigned course=1;course<=16;++course) {
             require(ZrSessionInitialize(state,course,machines,players,0x12345678,rom.data(),rom.size()),"Initialize native course/grid");
             require(ZrSessionStart(state),"Begin countdown");
@@ -97,6 +121,17 @@ int main(int argc,char** argv) {
         const auto before_menu=state.race_fields;inputs={};inputs[0].pad=VB_PAD_START;
         require(step(state,inputs,rom,events),"Live Start menu");
         require(state.menu_mask==1 && state.race_fields==before_menu+1,"Start must not pause multiplayer");
+        inputs[0].pad=VB_PAD_RT|VB_PAD_A;
+        require(step(state,inputs,rom,events),"Menu held inputs");
+        inputs[0].pad|=VB_PAD_START;
+        require(step(state,inputs,rom,events),"Close menu while holding controls");
+        require(!state.menu_mask && state.blocked_buttons[0]==(VB_PAD_RT|VB_PAD_A),"Menu controls suppressed until release");
+        inputs[0].pad=0;require(step(state,inputs,rom,events),"Release blocked controls");
+        require(!state.blocked_buttons[0],"Released controls become available");
+        inputs[0].pad=VB_PAD_START;require(step(state,inputs,rom,events),"Open retire menu");
+        inputs[0].pad=VB_PAD_SELECT;require(step(state,inputs,rom,events),"Select retires only this racer");
+        require(state.result[0].status==ZrRacerStatus::Forfeit && state.result[1].status==ZrRacerStatus::Racing
+            && state.phase==ZrRacePhase::Racing,"Live retire leaves other racers running");
         // Native terminal progress boundary, independently for both humans.
         require(ZrSessionInitialize(state,11,machines,2,1,rom.data(),rom.size()),"Terminal fixture");
         state.phase=ZrRacePhase::Racing;
@@ -112,16 +147,23 @@ int main(int argc,char** argv) {
         require(ZrSessionInitialize(state,1,machines,3,1,rom.data(),rom.size()),"Survivor fixture");
         state.phase=ZrRacePhase::Racing;inputs={};inputs[0].command=inputs[1].command=ZrInputForfeit;
         require(step(state,inputs,rom,events),"Forfeit sealed commands");
-        require(state.phase==ZrRacePhase::Results && state.result[2].finish_field==0,"Last survivor has no invented finish time");
+        require(state.phase==ZrRacePhase::Results && state.result[2].status==ZrRacerStatus::Survived
+            && state.result[2].finish_field==0,"Last survivor has no invented finish time");
         // Derived views may differ; producing/repeating them cannot mutate the
         // authoritative state used by the rollback comparison above.
         state=expected;const auto canonical=state;std::array<ZrEyePlanes,4> pictures{};
         for(unsigned i=0;i<4;++i) {
-            ZrViewGeometry view{};view.camera.mode=1;
-            require(ZrCameraBuild(view,state.world,state.actors,i,rom.data(),rom.size(),native),"Independent camera build");
+            ZrCameraState camera{};camera.mode=1; // stock gameplay follow camera
+            for(unsigned field=0;field<20;++field)
+                require(ZrCameraUpdatePose(camera,state.actors,i,rom.data(),rom.size(),native),"Logical camera cadence");
+            const auto frozen=camera;ZrViewGeometry view{};
+            require(ZrCameraBuildFromPose(view,camera,state.world,state.actors,i,rom.data(),rom.size(),native),"Independent frozen camera build");
             require(ZrRasterGeometry(view,pictures[i],rom.data(),rom.size(),native),"Both eye raster planes");
             ZrEyePlanes repeated{};
-            require(ZrRasterGeometry(view,repeated,rom.data(),rom.size(),native) && pictures[i]==repeated,"Repeated presentation");
+            ZrViewGeometry repeated_view{};
+            require(ZrCameraBuildFromPose(repeated_view,camera,state.world,state.actors,i,rom.data(),rom.size(),native)
+                && ZrRasterGeometry(repeated_view,repeated,rom.data(),rom.size(),native) && pictures[i]==repeated
+                && !std::memcmp(&camera,&frozen,sizeof(camera)),"Repeated presentation must not advance a camera");
             if(argc==3) {
                 std::filesystem::create_directories(std::filesystem::u8path(argv[2]));
                 std::vector<uint32_t> argb(384*224);
@@ -138,7 +180,7 @@ int main(int argc,char** argv) {
         require(!std::memcmp(&canonical,&state,sizeof(state)),"Rendering changed canonical race state");
         require(pictures[0][0]!=pictures[1][0] && pictures[1][0]!=pictures[2][0]
             && pictures[2][0]!=pictures[3][0],"Each racer must have a distinct camera");
-        std::cout<<"{\"passed\":true,\"native_grid_configurations\":"<<configurations
+        std::cout<<"{\"passed\":true,\"native_grid_configurations\":"<<configurations<<",\"progress_courses\":"<<progress_courses
                  <<",\"rollback_replay_fields\":90,\"independent_views\":4,\"eyes_per_view\":2}\n";
         return 0;
     } catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}

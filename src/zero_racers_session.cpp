@@ -15,7 +15,11 @@ bool settle(ZrSessionState& state) {
         remaining+=racing(state,i);
         survivors+=state.result[i].status!=ZrRacerStatus::Crashed && state.result[i].status!=ZrRacerStatus::Forfeit;
     }
-    if(!remaining || survivors<=1) {state.phase=ZrRacePhase::Results;state.menu_mask=0;return true;}
+    if(!remaining || survivors<=1) {
+        if(survivors==1)for(unsigned i=0;i<state.players;++i)
+            if(racing(state,i))state.result[i].status=ZrRacerStatus::Survived;
+        state.phase=ZrRacePhase::Results;state.menu_mask=0;return true;
+    }
     return false;
 }
 }
@@ -86,10 +90,13 @@ bool ZrSessionValidate(const ZrSessionState& s,const uint8_t* rom,size_t size) {
        || s.menu_mask>>s.players || s.countdown>150 || s.race_fields>s.tick)return false;
     const uint32_t sectors=word(rom+0xcb054+s.world.course*16);
     for(unsigned i=0;i<s.result.size();++i) {
+        if(s.blocked_buttons[i]>65535 || (i>=s.players && s.blocked_buttons[i]))return false;
         const auto& result=s.result[i];
         if(i>=s.players) {if(result.status!=ZrRacerStatus::Absent || result.finish_field)return false;continue;}
         const auto* body=s.actors[i].body.data();
-        if(result.status<ZrRacerStatus::Racing || result.status>ZrRacerStatus::Forfeit
+        if(result.status<ZrRacerStatus::Racing || result.status>ZrRacerStatus::Survived
+           || (result.status==ZrRacerStatus::Survived && s.phase!=ZrRacePhase::Results)
+           || (result.status==ZrRacerStatus::Racing && s.phase==ZrRacePhase::Results)
            || !machine(word(body+0x30)) || word(body+0x60)>=4 || word(body+0x3c)>=sectors
            || word(body+0x38)>800 || word(body+0x48)>5 || result.finish_field>s.race_fields
            || (result.status==ZrRacerStatus::Finished)!=bool(result.finish_field))return false;
@@ -108,8 +115,14 @@ bool ZrSessionStep(ZrSessionState& state,const std::array<ZrSeatInput,ZrMaxPlaye
     for(unsigned i=0;i<next.players;++i) {
         const uint16_t previous=next.actors[i].menu_buttons;
         const uint16_t held=inputs[i].pad;next.actors[i].menu_buttons=held;
-        if((held&VB_PAD_START) && !(previous&VB_PAD_START))next.menu_mask^=1u<<i;
-        if(inputs[i].command&ZrInputForfeit)next.result[i].status=ZrRacerStatus::Forfeit;
+        const bool was_open=(next.menu_mask&(1u<<i))!=0;
+        next.blocked_buttons[i]&=held;
+        if(racing(next,i) && (held&VB_PAD_START) && !(previous&VB_PAD_START))next.menu_mask^=1u<<i;
+        if(was_open || (next.menu_mask&(1u<<i)))next.blocked_buttons[i]|=held&~VB_PAD_START;
+        if(racing(next,i) && ((inputs[i].command&ZrInputForfeit)
+            || (was_open && (held&VB_PAD_SELECT) && !(previous&VB_PAD_SELECT)))) {
+            next.result[i].status=ZrRacerStatus::Forfeit;next.menu_mask&=~(1u<<i);
+        }
     }
     if(settle(next)){output.results=true;state=next;events=output;return true;}
     if(next.phase==ZrRacePhase::Countdown) {
@@ -121,7 +134,7 @@ bool ZrSessionStep(ZrSessionState& state,const std::array<ZrSeatInput,ZrMaxPlaye
         output.physics=true;next.world.random=next.world.random*0x5d588b65u+1;
         std::array<bool,ZrMaxPlayers> crossed{};
         for(unsigned i=0;i<next.players;++i)if(racing(next,i)) {
-            const uint16_t pad=(next.menu_mask&(1u<<i))?0:uint16_t(inputs[i].pad&~VB_PAD_START);
+            const uint16_t pad=(next.menu_mask&(1u<<i))?0:uint16_t(inputs[i].pad&~(VB_PAD_START|next.blocked_buttons[i]));
             if(!ZrActorHumanStep(next.actors[i],rom,size,pad,next.controls[i],output.human[i],native)
                || !ZrActorProgress(next.actors[i],next.world,rom,size,crossed[i],native))return false;
         }
@@ -133,10 +146,12 @@ bool ZrSessionStep(ZrSessionState& state,const std::array<ZrSeatInput,ZrMaxPlaye
             if(!ZrActorEnvironment(ZrEnvironment::Surface,next.actors[i],next.world,i,rom,size,output.surface[i],native)
                || !ZrActorEnvironment(ZrEnvironment::Wall,next.actors[i],next.world,i,rom,size,output.wall[i],native)
                || !ZrActorEnvironment(ZrEnvironment::Repair,next.actors[i],next.world,i,rom,size,output.repair[i],native))return false;
-            // The native loop checks a terminal progress crossing before crash.
+            // Versus records the finish on its crossing field, using the stock
+            // terminal counter, before a same-field crash can replace it.
             if(crossed[i] && word(next.actors[i].body.data()+0x48)==5) {
                 next.result[i]={ZrRacerStatus::Finished,next.race_fields};
             } else if(word(next.actors[i].body.data()+0x38)==800)next.result[i].status=ZrRacerStatus::Crashed;
+            if(!racing(next,i))next.menu_mask&=~(1u<<i);
         }
         ZrWorldAdvanceEffects(next.world);ZrWorldSyncRacerModels(next.world,next.actors);
         output.results=settle(next);

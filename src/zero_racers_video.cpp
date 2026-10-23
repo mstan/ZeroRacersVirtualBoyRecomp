@@ -1,0 +1,158 @@
+#include "zero_racers_video.h"
+#include "zero_racers_font.h"
+#include "renderer.h"
+#include "vip.h"
+#include "red_lut.h"
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <memory>
+
+namespace {
+ZrFont font;
+struct ViewCache {
+    bool valid=false;
+    ZrWorldState world;
+    std::array<ZrActorState,6> actors;
+    ZrCameraState camera;
+    ZrEyePlanes planes;
+    ZrEyeTags tags;
+};
+std::array<ViewCache,4> cache;
+struct Frame {
+    std::array<uint32_t,VB_RENDER_PIXELS> stock;
+    std::array<uint8_t,VB_RENDER_PIXELS> levels;
+    std::array<VbSourceTexel,VB_RENDER_PIXELS> sources;
+};
+Frame frame;
+std::array<uint32_t,VB_RENDER_PIXELS> pane;
+uint32_t word(const uint8_t* p){return p[0]|uint32_t(p[1])<<8|uint32_t(p[2])<<16|uint32_t(p[3])<<24;}
+void text(Frame& f,int x,int y,const char* label,uint32_t ink=2) {
+    for(const unsigned char* p=reinterpret_cast<const unsigned char*>(label);*p;++p,x+=8) {
+        unsigned tile=*p;
+        for(unsigned v=0;v<8;++v)for(unsigned u=0;u<8;++u) {
+            const int px=x+int(u),py=y+int(v);
+            if(px<0 || px>=384 || py<0 || py>=224)continue;
+            const unsigned raw=(font[tile*16+v*2+u/4]>>(u%4*2))&3;
+            if(!raw)continue;
+            const unsigned i=py*384+px;f.levels[i]=raw;
+            auto& source=f.sources[i];source={};source.kind=4;source.tile_hash=ink;source.raw=raw;
+        }
+    }
+}
+void clock(char* out,size_t capacity,unsigned fields) {
+    // The stock timer advances two centiseconds per display field.
+    const uint64_t centiseconds=uint64_t(fields)*2;
+    std::snprintf(out,capacity,"%02u:%02u:%02u",unsigned(centiseconds/6000),unsigned(centiseconds/100%60),unsigned(centiseconds%100));
+}
+const char* status(ZrRacerStatus s) {
+    switch(s){case ZrRacerStatus::Finished:return "FINISHED";case ZrRacerStatus::Crashed:return "CRASHED";
+    case ZrRacerStatus::Forfeit:return "RETIRED";case ZrRacerStatus::Survived:return "WINNER";default:return "RACING";}
+}
+void standings(Frame& f,const ZrSessionState& session) {
+    f.levels.fill(0);f.sources.fill({});text(f,112,32,session.phase==ZrRacePhase::Results?"VS RESULTS":"STANDINGS",4);
+    for(unsigned i=0;i<session.players;++i) {
+        char line[48],time[32];clock(time,sizeof(time),session.result[i].finish_field);
+        std::snprintf(line,sizeof(line),"P%u  %s",i+1,status(session.result[i].status));text(f,64,64+i*32,line);
+        text(f,224,64+i*32,session.result[i].status==ZrRacerStatus::Finished?time:"--:--:--");
+    }
+}
+bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& cameras,
+          const uint8_t* rom,size_t size,ZrNativeCall native,unsigned seat,int eye,uint32_t* out) {
+    auto& saved=cache[seat];
+    if(!saved.valid || std::memcmp(&saved.world,&session.world,sizeof(saved.world))
+       || std::memcmp(&saved.actors,&session.actors,sizeof(saved.actors))
+       || std::memcmp(&saved.camera,&cameras[seat],sizeof(saved.camera))) {
+        auto view=std::make_unique<ZrViewGeometry>();
+        ZrEyePlanes planes{};auto tags=std::make_unique<ZrEyeTags>();
+        if(!ZrCameraBuildFromPose(*view,cameras[seat],session.world,session.actors,seat,rom,size,native)
+           || !ZrRasterGeometry(*view,planes,rom,size,native,tags.get()))return false;
+        saved.world=session.world;saved.actors=session.actors;saved.camera=cameras[seat];
+        saved.planes=planes;saved.tags=*tags;saved.valid=true;
+    }
+    frame.sources.fill({});
+    for(unsigned y=0;y<224;++y)for(unsigned x=0;x<384;++x) {
+        const unsigned i=y*384+x;const uint8_t level=(saved.planes[eye][x*64+y/4]>>(y%4*2))&3;
+        frame.levels[i]=level;
+        auto& source=frame.sources[i];source.kind=4;source.map=255;source.x=x;source.y=y;
+        source.raw=level;source.tile_hash=saved.tags[eye][i];
+    }
+    char label[64],time[32];const auto* body=session.actors[seat].body.data();
+    const unsigned speed=word(body+0x34);
+    const unsigned display_speed=speed<1600?(speed+15)/16:speed<3200?100+(speed-1600)*700/1600:speed/4;
+    std::snprintf(label,sizeof(label),"P%u  LAP %u/5",seat+1,std::min(5u,word(body+0x48)+1));text(frame,8,8,label);
+    clock(time,sizeof(time),session.race_fields);text(frame,304,8,time);
+    std::snprintf(label,sizeof(label),"%03u KM/H",std::min(display_speed,999u));text(frame,280,200,label,3);
+    std::snprintf(label,sizeof(label),"POWER %03u",800-std::min(800u,word(body+0x38)));text(frame,8,200,label,7);
+    if(session.phase==ZrRacePhase::Countdown) {
+        std::snprintf(label,sizeof(label),"%u",(session.countdown+49)/50);text(frame,184,72,label,4);
+    }
+    if(session.result[seat].status!=ZrRacerStatus::Racing)text(frame,144,64,status(session.result[seat].status),4);
+    if(session.menu_mask&(1u<<seat)) {
+        text(frame,112,96,"RACE CONTINUES",4);text(frame,112,112,"START  RESUME");text(frame,112,128,"SELECT  RETIRE");
+    }
+    if(session.phase==ZrRacePhase::Results)standings(frame,session);
+    uint32_t colors[96][4];vb_vip_column_argb(eye,colors);
+    for(unsigned y=0;y<224;++y)for(unsigned x=0;x<384;++x) {
+        const unsigned i=y*384+x;frame.stock[i]=vb_red_lut_map(int((colors[x/4][frame.levels[i]]>>16)&255));
+    }
+    const VbRenderFrame source{session.tick,eye,frame.stock.data(),frame.levels.data(),nullptr,frame.sources.data(),384,224};
+    return vb_renderer_apply_frame(&source,out)!=0;
+}
+}
+bool ZrVideoInitialize(const uint8_t* rom,size_t size) {ZrVideoInvalidate();return ZrDecodeFont(font,rom,size);}
+void ZrVideoInvalidate(){for(auto& c:cache)c.valid=false;}
+int ZrVideoMenu(const ZrMenuState& menu,int eye,uint32_t* out) {
+    if(!out || !menu.screen || eye<0 || eye>1)return 0;
+    frame.levels.fill(0);frame.sources.fill({});
+    if(menu.screen==1) {
+        vb_renderer_present(eye,out);
+        if(menu.highlight) {
+            for(unsigned y=168;y<184;++y)for(unsigned x=144;x<240;++x)
+                if(x<160 || x>=224)out[y*384+x]=0xff000000u;
+        }
+        text(frame,menu.highlight?144:152,192,menu.highlight?">VS MODE<":"VS MODE",menu.highlight?4:2);
+    } else {
+        std::fill_n(out,VB_RENDER_PIXELS,0xff000000u);text(frame,152,16,"VS MODE",4);
+        char label[64];
+        std::snprintf(label,sizeof(label),"%c PLAYERS    %u",menu.row==0?'>':' ',menu.players);text(frame,80,40,label);
+        std::snprintf(label,sizeof(label),"%c COURSE     %02u",menu.row==1?'>':' ',menu.course);text(frame,80,56,label);
+        for(unsigned i=0;i<menu.players;++i) {
+            std::snprintf(label,sizeof(label),"%c P%u MACHINE %u   %s",menu.row==i+2?'>':' ',i+1,menu.machines[i]+1,
+                menu.ready_mask&(1u<<i)?"READY":"A:READY");text(frame,80,80+i*20,label);
+        }
+        text(frame,80,168,menu.row==menu.players+2?"> START RACE":"  START RACE",4);
+        text(frame,64,192,"LEFT/RIGHT:CHANGE  B:BACK");text(frame,64,208,"EACH PLAYER A:READY");
+    }
+    uint32_t colors[96][4];vb_vip_column_argb(eye,colors);
+    for(unsigned y=0;y<224;++y)for(unsigned x=0;x<384;++x) {
+        const unsigned i=y*384+x;frame.stock[i]=colors[x/4][frame.levels[i]];
+    }
+    const VbRenderFrame source{0,eye,frame.stock.data(),frame.levels.data(),nullptr,frame.sources.data(),384,224};
+    if(!vb_renderer_apply_frame(&source,pane.data()))return 0;
+    for(unsigned i=0;i<VB_RENDER_PIXELS;++i)if(frame.levels[i])out[i]=pane[i];
+    return 1;
+}
+int ZrVideoSize(const ZrSessionState& s,int seat,int* width,int* height) {
+    if(s.phase==ZrRacePhase::Empty || s.phase==ZrRacePhase::Ready || !width || !height || seat<-1 || seat>=int(s.players))return 0;
+    *width=seat>=0 || s.players==2?384:768;*height=seat>=0?224:448;return 1;
+}
+int ZrVideoRender(const ZrSessionState& s,const std::array<ZrCameraState,4>& cameras,
+                  const uint8_t* rom,size_t size,ZrNativeCall native,int seat,int eye,uint32_t* out,int width,int height) {
+    int w,h;if(!out || !ZrVideoSize(s,seat,&w,&h) || width!=w || height!=h || eye<0 || eye>1)return 0;
+    if(seat>=0)return draw(s,cameras,rom,size,native,unsigned(seat),eye,out);
+    std::fill_n(out,size_t(w)*h,0xff000000u);
+    for(unsigned i=0;i<s.players;++i) {
+        if(!draw(s,cameras,rom,size,native,i,eye,pane.data()))return 0;
+        const unsigned x=s.players==2?0:(i%2)*384,y=s.players==2?i*224:(i/2)*224;
+        for(unsigned row=0;row<224;++row)std::copy_n(pane.data()+row*384,384,out+(y+row)*w+x);
+    }
+    if(s.players==3) {
+        standings(frame,s);uint32_t colors[96][4];vb_vip_column_argb(eye,colors);
+        for(unsigned y=0;y<224;++y)for(unsigned x=0;x<384;++x)frame.stock[y*384+x]=vb_red_lut_map(int((colors[x/4][frame.levels[y*384+x]]>>16)&255));
+        const VbRenderFrame source{s.tick,eye,frame.stock.data(),frame.levels.data(),nullptr,frame.sources.data(),384,224};
+        if(!vb_renderer_apply_frame(&source,pane.data()))return 0;
+        for(unsigned y=0;y<224;++y)std::copy_n(pane.data()+y*384,384,out+(y+224)*768+384);
+    }
+    return 1;
+}

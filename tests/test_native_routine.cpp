@@ -3,6 +3,8 @@
 #include "zero_racers_world.h"
 #include "zero_racers_camera.h"
 #include "zero_racers_session.h"
+#include "zero_racers_font.h"
+#include "zero_racers_bus.h"
 #include "v810_interpreter.h"
 #include "vb_crc32.h"
 #include <algorithm>
@@ -71,6 +73,17 @@ int main(int argc,char** argv) {
     }
     if(argc!=6 && argc!=8){std::cout<<"ROM before.state before-wram.bin after.state after-wram.bin [before-vram.bin after-vram.bin]\n";return 2;}
     try {
+        {
+            ZrMappedBus bus(nullptr,0);uint32_t scalar=0x12345678,dirty=0,value=0;
+            if(!bus.track_word(0x05001000,scalar,dirty,4) || !bus.constant_word(0x05001010,0x87654321))
+                throw std::runtime_error("Numeric guest-word mapping failed");
+            auto memory=bus.callbacks();
+            if(!memory.read(memory.context,0x05001001,2,&value) || value!=0x3456
+               || !memory.read(memory.context,0x05001013,1,&value) || value!=0x87
+               || !memory.write(memory.context,0x05001001,2,0xabcd) || scalar!=0x12abcd78 || dirty!=4
+               || memory.write(memory.context,0x05001010,4,0))
+                throw std::runtime_error("Numeric word byte order/partial store/RO contract failed");
+        }
         Fixture f{file(argv[1]),file(argv[3]),argc==8?file(argv[6]):std::vector<uint8_t>{},{},{}},original=f;
         if(f.rom.size()!=1048576 || vb_crc32_compute(f.rom.data(),f.rom.size())!=0x71553796
            || f.wram.size()!=65536)throw std::runtime_error("Wrong stock cartridge/WRAM fixture");
@@ -211,6 +224,17 @@ int main(int argc,char** argv) {
             }
             std::cout<<"Native course/grid/profile initialization matches stock result\n";
         }
+        if(before.pc==0xfff24aa2u) {
+            ZrWorldState world{},prepared;
+            world.course=u32(original.wram.data()+0x1058);
+            std::copy_n(original.wram.begin()+0xd270,world.models.size(),world.models.begin());
+            const auto immutable=world;
+            if(!ZrCameraPrepareWorld(prepared,world,u32(original.wram.data()+0x10c0),u32(original.wram.data()+0x10c4),
+                original.rom.data(),original.rom.size()) || !std::equal(prepared.models.begin(),prepared.models.end(),end.begin()+0xd270))
+                throw std::runtime_error("View-dependent display-list preparation differs from native result");
+            if(std::memcmp(&immutable,&world,sizeof(world)))throw std::runtime_error("View modified shared model state");
+            std::cout<<"View-owned tunnel caps/display-list preparation matches native result\n";
+        }
         if(before.pc==0xfff0ef40u || before.pc==0xfff13d64u || before.pc==0xfff13f58u
            || before.pc==0xfff1436eu || before.pc==0xfff14a3eu || before.pc==0xfff14e16u) {
             ZrWorldState world{};std::array<ZrActorState,6> actors{};ZrViewGeometry view{};
@@ -226,6 +250,12 @@ int main(int argc,char** argv) {
             std::copy_n(source.begin()+0x1208,view.vertex.size(),view.vertex.begin());
             std::copy_n(source.begin()+0x4220,view.edge.size(),view.edge.begin());
             std::copy_n(source.begin()+0x5230,view.line.size(),view.line.begin());
+            const auto before_state=file(argv[2]),after_state=file(argv[4]);
+            const size_t tag_bytes=sizeof(view.edge_tags)+sizeof(view.line_tags);
+            if(before_state.size()<tag_bytes || after_state.size()!=before_state.size())
+                throw std::runtime_error("Camera metadata fixture missing");
+            std::memcpy(view.edge_tags.data(),before_state.data()+before_state.size()-tag_bytes,sizeof(view.edge_tags));
+            std::memcpy(view.line_tags.data(),before_state.data()+before_state.size()-sizeof(view.line_tags),sizeof(view.line_tags));
             auto stage=before.pc==0xfff0ef40u?ZrCameraStage::Pose:before.pc==0xfff13d64u?ZrCameraStage::Sector:
                 before.pc==0xfff13f58u?ZrCameraStage::Models:before.pc==0xfff1436eu?ZrCameraStage::Tunnel:
                 before.pc==0xfff14a3eu?ZrCameraStage::Project:ZrCameraStage::Clip;
@@ -242,11 +272,18 @@ int main(int argc,char** argv) {
                || !std::equal(view.line.begin(),view.line.end(),end.begin()+0x5230)
                || (stage==ZrCameraStage::Clip && view.lines!=expected.gpr[10]))
                 throw std::runtime_error("Classified camera geometry differs from stock result");
+            if(std::memcmp(view.edge_tags.data(),after_state.data()+after_state.size()-tag_bytes,sizeof(view.edge_tags))
+               || std::memcmp(view.line_tags.data(),after_state.data()+after_state.size()-sizeof(view.line_tags),sizeof(view.line_tags)))
+                throw std::runtime_error("View-owned geometry metadata differs from native observer");
             if(std::memcmp(&world_before,&world,sizeof(world)) || std::memcmp(&actors_before,&actors,sizeof(actors)))
                 throw std::runtime_error("Read-only camera changed the authoritative world");
             std::cout<<"Read-only classified camera matches native result\n";
         }
         if(before.pc==0xfff13ad2u && argc==8) {
+            ZrFont font;
+            if(!ZrDecodeFont(font,original.rom.data(),original.rom.size())
+               || !std::equal(font.begin(),font.end(),original.video.begin()+0x6000))
+                throw std::runtime_error("Decoded stock font differs from native CHR atlas");
             const auto video_after=file(argv[7]);if(f.video!=video_after)throw std::runtime_error("Native raster VRAM mismatch");
             ZrViewGeometry view{};ZrEyePlanes planes{};
             std::copy_n(original.wram.begin()+0x5230,view.line.size(),view.line.begin());view.lines=before.gpr[6];

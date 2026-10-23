@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+from PIL import Image
 
 
 def main():
@@ -64,6 +65,20 @@ def main():
                 menu=c.command('game_status')
                 assert menu['tick']==after['tick']+3 and (menu['phase']==4 or menu['can_pause'] is False)
                 for eye in range(2):c.command('screenshot',eye=eye,path=(folder/f'eye-{eye}.png').as_posix())
+                presented_digest=c.command('state_digest')['digest']
+                for eye in range(2):
+                    for seat in range(-1,a.players):
+                        name=f'game-seat{seat}-eye{eye}.png'
+                        capture=c.command('screenshot',game=1,seat=seat,eye=eye,path=(folder/name).as_posix())
+                        assert capture['ok'],capture
+                        with Image.open(folder/name) as image:
+                            assert len(set(image.convert('RGB').getdata()))>1,'View is entirely blank'
+                        assert (capture['width'],capture['height'])==((384,224) if seat>=0 else (384 if a.players==2 else 768,448))
+                        again=folder/('repeat-'+name)
+                        assert c.command('screenshot',game=1,seat=seat,eye=eye,path=again.as_posix())['ok']
+                        assert (folder/name).read_bytes()==again.read_bytes(),'Repeated view advanced presentation'
+                assert c.command('state_digest')['digest']==presented_digest,'Rendering modified authoritative state'
+                assert (folder/'game-seat0-eye0.png').read_bytes()!=(folder/'game-seat1-eye0.png').read_bytes(),'Independent views are identical'
                 # Exercise the actual rbengine history through the normal
                 # machine loop, rather than calling it a rewind from a memcpy.
                 c.command('rewind_enable',value=8);start=c.command('frame')['frame']
@@ -78,7 +93,9 @@ def main():
             assert not list(folder.glob('protected-native.sav.*')),'Native save backup/temp side effect'
         # Same executable/build/features, different qualified execution paths.
         audits=[]
-        for name in ('after.state','replayed.state','eye-0.png','eye-1.png','audio-after.bin'):
+        names=['after.state','replayed.state','eye-0.png','eye-1.png','audio-after.bin']
+        names += [f'game-seat{seat}-eye{eye}.png' for eye in range(2) for seat in range(-1,a.players)]
+        for name in names:
             left=(a.out/'native'/name).read_bytes();right=(a.out/'interpreter'/name).read_bytes()
             equal=left==right
             audits.append({'artifact':name,'bytes':[len(left),len(right)],'equal':equal,

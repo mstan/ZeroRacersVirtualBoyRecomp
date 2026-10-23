@@ -14,16 +14,31 @@ struct ZrViewGeometry {
     std::array<uint8_t,1026*12> vertex{};
     std::array<uint8_t,514*8> edge{};
     std::array<uint8_t,1026*32> line{};
+    std::array<uint32_t,514> edge_tags{};
+    std::array<uint32_t,1026> line_tags{};
 };
 enum class ZrCameraStage { Pose, Sector, Models, Tunnel, Project, Clip };
+// Advance the logical camera only at the fixed simulation cadence. View
+// generation below consumes that frozen pose and may repeat without moving it.
+bool ZrCameraUpdatePose(ZrCameraState&,const std::array<ZrActorState,6>&,unsigned slot,
+                        const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
+// Original view-dependent tunnel-cap/display-list preparation. This copy is
+// owned by one view; choosing its near/far sectors never mutates shared world.
+bool ZrCameraPrepareWorld(ZrWorldState& output,const ZrWorldState&,uint32_t near_sector,
+                          uint32_t far_sector,const uint8_t* rom,size_t,
+                          ZrNativeCall native=nullptr);
 bool ZrCameraBuildStage(ZrCameraStage,ZrViewGeometry&,const ZrWorldState&,
                         const std::array<ZrActorState,6>&,unsigned slot,
                         const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
 bool ZrCameraBuild(ZrViewGeometry&,const ZrWorldState&,
                    const std::array<ZrActorState,6>&,unsigned slot,
                    const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
+bool ZrCameraBuildFromPose(ZrViewGeometry&,const ZrCameraState&,const ZrWorldState&,
+                           const std::array<ZrActorState,6>&,unsigned slot,
+                           const uint8_t* rom,size_t,ZrNativeCall native=nullptr);
 using ZrEyePlanes=std::array<std::array<uint8_t,0x6000>,2>;
+using ZrEyeTags=std::array<std::array<uint32_t,384*224>,2>;
 // Original first-writer line rasterizer. Both eye planes are independent.
 // Caller owns the initial pixels (e.g. native HUD); no implicit clear/VRAM.
 bool ZrRasterGeometry(const ZrViewGeometry&,ZrEyePlanes&,const uint8_t* rom,size_t,
-                       ZrNativeCall native=nullptr);
+                       ZrNativeCall native=nullptr,ZrEyeTags* tags=nullptr);

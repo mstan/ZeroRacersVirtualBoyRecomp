@@ -3,7 +3,7 @@
 
 constexpr unsigned ZrMaxPlayers=4;
 enum class ZrRacePhase:uint32_t { Empty, Ready, Countdown, Racing, Results };
-enum class ZrRacerStatus:uint32_t { Absent, Racing, Finished, Crashed, Forfeit };
+enum class ZrRacerStatus:uint32_t { Absent, Racing, Finished, Crashed, Forfeit, Survived };
 struct ZrRacerResult {
     ZrRacerStatus status=ZrRacerStatus::Absent;
     uint32_t finish_field=0; // zero for every non-finisher, never a fabricated time
@@ -12,13 +12,14 @@ struct ZrSessionState {
     uint32_t version=1;
     ZrRacePhase phase=ZrRacePhase::Empty;
     uint32_t players=0,tick=0,race_fields=0,countdown=0,physics_phase=0,menu_mask=0;
+    std::array<uint32_t,ZrMaxPlayers> blocked_buttons{};
     ZrWorldState world;
     std::array<ZrActorState,6> actors{};
     std::array<ZrActorControls,ZrMaxPlayers> controls{};
     std::array<ZrRacerResult,ZrMaxPlayers> result{};
 };
 static_assert(sizeof(ZrActorState)==308 && sizeof(ZrWorldState)==2316
-              && sizeof(ZrSessionState)==4260,"Canonical session layout must not contain padding");
+              && sizeof(ZrSessionState)==4276,"Canonical session layout must not contain padding");
 enum { ZrInputForfeit=1 };
 struct ZrSeatInput {uint16_t pad=0;uint16_t command=0;};
 struct ZrSessionEvents {

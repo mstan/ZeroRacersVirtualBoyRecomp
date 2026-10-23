@@ -30,7 +30,7 @@ endif()
 add_subdirectory("${VBRECOMP_ROOT}" vbrecomp)
 
 add_library(zero-racers-routine STATIC src/zero_racers_routine.cpp src/zero_racers_actor.cpp
-    src/zero_racers_bus.cpp src/zero_racers_world.cpp src/zero_racers_camera.cpp src/zero_racers_session.cpp)
+    src/zero_racers_bus.cpp src/zero_racers_world.cpp src/zero_racers_camera.cpp src/zero_racers_session.cpp src/zero_racers_font.cpp src/zero_racers_menu.cpp)
 target_include_directories(zero-racers-routine PUBLIC src "${VBRECOMP_ROOT}/runtime/include")
 target_compile_features(zero-racers-routine PUBLIC cxx_std_17)
 if(BUILD_TESTING)
@@ -66,18 +66,21 @@ if(BUILD_TESTING)
     endif()
 endif()
 target_compile_definitions(vb-runtime PRIVATE
+    VB_GAME_LOCAL_PLAYERS=4
     VB_GAME_ID="zero-racers"
     VB_GAME_TITLE="Zero Racers Recompiled"
     VB_GAME_SHA256="47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7"
     VB_GAME_CRC32=0x71553796u)
 set_target_properties(vb-runtime PROPERTIES OUTPUT_NAME ZeroRacersVirtualBoyRecomp)
-target_sources(vb-runtime PRIVATE src/zero_racers_color.cpp src/zero_racers_host.cpp)
+target_sources(vb-runtime PRIVATE src/zero_racers_color.cpp src/zero_racers_host.cpp src/zero_racers_video.cpp)
 target_compile_definitions(vb-runtime PRIVATE VB_SIMULATION_POINTS=1)
 target_link_libraries(vb-runtime PRIVATE zero-racers-routine)
 vb_state_add_identity(vb-runtime src/zero_racers_color.cpp src/zero_racers_host.cpp
     src/zero_racers_routine.h src/zero_racers_routine.cpp src/zero_racers_actor.h src/zero_racers_actor.cpp
     src/zero_racers_bus.h src/zero_racers_bus.cpp src/zero_racers_world.h src/zero_racers_world.cpp
-    src/zero_racers_camera.h src/zero_racers_camera.cpp src/zero_racers_session.h src/zero_racers_session.cpp CMakeLists.txt)
+    src/zero_racers_camera.h src/zero_racers_camera.cpp src/zero_racers_session.h src/zero_racers_session.cpp
+    src/zero_racers_font.h src/zero_racers_font.cpp src/zero_racers_video.h src/zero_racers_video.cpp
+    src/zero_racers_menu.h src/zero_racers_menu.cpp CMakeLists.txt)
 if(ZERO_RACERS_UI)
     add_custom_target(zero-racers-assets
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vb-runtime>/assets/img"
