@@ -28,14 +28,56 @@ if(ZERO_RACERS_UI)
     include("${RECOMP_UI_ROOT}/recomp_ui.cmake")
 endif()
 add_subdirectory("${VBRECOMP_ROOT}" vbrecomp)
+
+add_library(zero-racers-routine STATIC src/zero_racers_routine.cpp src/zero_racers_actor.cpp
+    src/zero_racers_bus.cpp src/zero_racers_world.cpp src/zero_racers_camera.cpp src/zero_racers_session.cpp)
+target_include_directories(zero-racers-routine PUBLIC src "${VBRECOMP_ROOT}/runtime/include")
+target_compile_features(zero-racers-routine PUBLIC cxx_std_17)
+if(BUILD_TESTING)
+    set(_zr_test_core
+        "${VBRECOMP_ROOT}/runtime/src/v810_interpreter.c"
+        "${VBRECOMP_ROOT}/runtime/src/v810_extended.c"
+        "${VBRECOMP_ROOT}/runtime/src/interrupts.c"
+        "${VBRECOMP_ROOT}/runtime/src/vb_crc32.c")
+    add_executable(zero-racers-routine-test tests/test_native_routine.cpp
+        ${_zr_test_core})
+    add_executable(zero-racers-session-test tests/test_versus_session.cpp ${_zr_test_core}
+        "${VBRECOMP_ROOT}/runtime/src/png_write.c")
+    target_link_libraries(zero-racers-session-test PRIVATE zero-racers-routine)
+    target_link_libraries(zero-racers-routine-test PRIVATE zero-racers-routine)
+    if(NOT MSVC)
+        target_link_libraries(zero-racers-routine-test PRIVATE m)
+        target_link_libraries(zero-racers-session-test PRIVATE m)
+    endif()
+    option(ZERO_RACERS_NATIVE_TESTS "Build the generated-native versus qualification runner" OFF)
+    if(ZERO_RACERS_NATIVE_TESTS)
+        include("${CMAKE_CURRENT_SOURCE_DIR}/generated/zero_racers_sources.cmake")
+        set(_zr_native_sources "${CMAKE_CURRENT_SOURCE_DIR}/generated/zero_racers_dispatch.c")
+        foreach(_source IN LISTS VB_GENERATED_BODY_SOURCES)
+            list(APPEND _zr_native_sources "${CMAKE_CURRENT_SOURCE_DIR}/generated/${_source}")
+        endforeach()
+        add_executable(zero-racers-session-native-test tests/test_versus_session.cpp ${_zr_test_core}
+            "${VBRECOMP_ROOT}/runtime/src/png_write.c" ${_zr_native_sources})
+        target_compile_definitions(zero-racers-session-native-test PRIVATE ZR_TEST_NATIVE=1)
+        target_link_libraries(zero-racers-session-native-test PRIVATE zero-racers-routine)
+        if(NOT MSVC)
+            target_link_libraries(zero-racers-session-native-test PRIVATE m)
+        endif()
+    endif()
+endif()
 target_compile_definitions(vb-runtime PRIVATE
     VB_GAME_ID="zero-racers"
     VB_GAME_TITLE="Zero Racers Recompiled"
     VB_GAME_SHA256="47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7"
     VB_GAME_CRC32=0x71553796u)
 set_target_properties(vb-runtime PROPERTIES OUTPUT_NAME ZeroRacersVirtualBoyRecomp)
-target_sources(vb-runtime PRIVATE src/zero_racers_color.cpp)
-vb_state_add_identity(vb-runtime src/zero_racers_color.cpp CMakeLists.txt)
+target_sources(vb-runtime PRIVATE src/zero_racers_color.cpp src/zero_racers_host.cpp)
+target_compile_definitions(vb-runtime PRIVATE VB_SIMULATION_POINTS=1)
+target_link_libraries(vb-runtime PRIVATE zero-racers-routine)
+vb_state_add_identity(vb-runtime src/zero_racers_color.cpp src/zero_racers_host.cpp
+    src/zero_racers_routine.h src/zero_racers_routine.cpp src/zero_racers_actor.h src/zero_racers_actor.cpp
+    src/zero_racers_bus.h src/zero_racers_bus.cpp src/zero_racers_world.h src/zero_racers_world.cpp
+    src/zero_racers_camera.h src/zero_racers_camera.cpp src/zero_racers_session.h src/zero_racers_session.cpp CMakeLists.txt)
 if(ZERO_RACERS_UI)
     add_custom_target(zero-racers-assets
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vb-runtime>/assets/img"
