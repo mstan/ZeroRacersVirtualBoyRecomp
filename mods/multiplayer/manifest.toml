@@ -1,9 +1,9 @@
 format_version = 1
 id = "zero-racers.multiplayer"
 version = "0.1.0"
-name = "Zero Racers Multiplayer"
+name = "Zero Racers Multiplayer (Experimental)"
 author = "Zero Racers Recomp contributors"
-description = "Two to four human racers with local split screen or one racer per computer over rollback netplay."
+description = "Experimental multiplayer for two to four human racers, with local split screen or one racer per computer over rollback netplay."
 license = "MIT"
 
 [[target]]
@@ -12,8 +12,8 @@ rom_sha256 = "47421cd82dfd414d042d2f7f9db51e657d414d4ddfa46887efb544029fa11ce7"
 
 [[feature]]
 id = "versus"
-name = "Multiplayer (2–4 players)"
-description = "Add VS MODE for local split screen and netplay. Enable before starting a game or network match. Changes take effect when the game restarts."
+name = "Multiplayer / VS (Experimental)"
+description = "Experimental two-to-four-player VS mode for local split screen and netplay. Enable before starting a game or network match. Changes take effect when the game restarts."
 group = "Gameplay"
 channel = "experimental"
 default_enabled = false

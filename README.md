@@ -54,7 +54,7 @@ separately.
 
 ## Versus mode
 
-On **Mods**, enable **Multiplayer (2-4 players)** before launching. The bundled
+On **Mods**, enable **Multiplayer / VS (Experimental)** before launching. The bundled
 mod is installed and disabled by default; turning it off restores the stock
 four-choice title. Changes take effect when the game restarts. Then choose
 **VS MODE** on the title screen for two to four human racers. Choose
@@ -63,6 +63,21 @@ race. Assign local controllers in the launcher's controller settings. Two
 players share a top/bottom split; three or four use a four-pane layout, with
 standings in the spare three-player pane. Each racer sees one eye.
 Small P1-P4 tags above visible ships identify each racer in every view.
+
+<p>
+  <img src="docs/multiplayer-player1.png" alt="Player 1's independent view with P1 and P2 ship markers" width="49%">
+  <img src="docs/multiplayer-player2.png" alt="Player 2's independent view in the same multiplayer race" width="49%">
+</p>
+
+*Player 1 and Player 2 in a network race, each with an independent camera.
+The optional color mod is enabled.*
+
+<p>
+  <img src="docs/multiplayer-2p-split.png" alt="Local two-player race in top and bottom split screen" width="49%">
+  <img src="docs/multiplayer-4p-split.png" alt="Local four-player race with four independent camera panes" width="49%">
+</p>
+
+*Local split screen: two players on the left, four players on the right.*
 
 For remote play, create or join a room through **Netplay** in the launcher.
 LAN and Direct IP use the local network; online rooms use the shared lobby

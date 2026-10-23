@@ -157,7 +157,7 @@ with tempfile.TemporaryDirectory(prefix='zero-racers-release-', dir=args.out) as
         'own extracted Zero Racers .vb cartridge, and press Play. No ROM included.\n'
         f'Optional color: in Mods, install {mod.name}, then enable Wireframe color.\n'
         'Color is OFF by default. Disable it to restore native red.\n'
-        'Multiplayer: enable Multiplayer (2-4 players) on Mods before launching.\n'
+        'Multiplayer: enable Multiplayer / VS (Experimental) on Mods before launching.\n'
         'The bundled Multiplayer package is installed but OFF by default.\n'
         'Keyboard: arrows, WASD, X/Z, Q/E, Enter/Right Shift. Escape: settings.\n'
         'Keep vbrecomp.cfg, saves/ and mods/ when updating. See README.md.\n')
