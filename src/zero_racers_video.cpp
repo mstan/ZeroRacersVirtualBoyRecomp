@@ -60,7 +60,7 @@ void standings(Frame& f,const ZrSessionState& session) {
     }
     if(session.phase==ZrRacePhase::Results) {
         text(f,64,192,"START:REMATCH  B:CHANGE RACE",4);
-        if(!vb_netplay_enabled())text(f,144,208,"SELECT:TITLE",4);
+        text(f,144,208,vb_netplay_enabled()?"SELECT:LOBBY":"SELECT:TITLE",4);
     }
 }
 bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& cameras,

@@ -35,8 +35,10 @@ def main():
     p.add_argument('--host-seat',type=int,choices=(0,1,2,3))
     p.add_argument('--window',action='store_true',help='Dummy SDL windows; check the actual one-eye game texture on every peer')
     p.add_argument('--state-operations',action='store_true',help='Qualify host-synchronized between-race slots and repeated input epoch resets')
+    p.add_argument('--room-rematches',type=int,choices=(0,1,2),default=0,help='Return to the shared room and relaunch in the same processes')
     a=p.parse_args();a.out=a.out.resolve();a.out.mkdir(parents=True,exist_ok=False)
     if a.window and not a.shared_room:p.error('--window requires --shared-room')
+    if a.room_rematches and not a.shared_room:p.error('--room-rematches requires --shared-room')
     sys.path.insert(0,str(a.framework.resolve()/'tools'));from cosim import Runner
     from debug_client import DebugClient
     class RoomRunner(Runner):
@@ -158,6 +160,9 @@ def main():
         if a.state_operations:
             from qualify_online_states import qualify
             target,states,report['online_states']=qualify(runners,a,park,target)
+        if a.room_rematches:
+            from qualify_room_return import qualify
+            target,states,report['room_return']=qualify(runners,a,park,target)
         for r in runners:r.client.command('pause')
         snapshots=[];games=[]
         for slot,r in enumerate(runners):
@@ -206,6 +211,14 @@ def main():
         report['passed']=True
     except Exception as error:report['error']=repr(error);report['traceback']=traceback.format_exc()
     finally:
+        # Park all debug loops before requesting shutdown so an early BYE
+        # cannot race another peer's quit into its automatic room rejoin.
+        for r in runners:
+            try:r.client.command('pause')
+            except Exception:pass
+        for r in runners:
+            try:r.client.command('quit')
+            except Exception:pass
         for r in runners:r.close()
     try:
         for save,native in saves:
