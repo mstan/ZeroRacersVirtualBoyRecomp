@@ -21,6 +21,7 @@ struct ViewCache {
     ZrEyeTags tags;
 };
 std::array<ViewCache,4> cache;
+bool cache_enabled=true;
 struct Frame {
     std::array<uint32_t,VB_RENDER_PIXELS> stock;
     std::array<uint8_t,VB_RENDER_PIXELS> levels;
@@ -53,10 +54,14 @@ const char* status(ZrRacerStatus s) {
 }
 void standings(Frame& f,const ZrSessionState& session) {
     f.levels.fill(0);f.sources.fill({});text(f,112,32,session.phase==ZrRacePhase::Results?"VS RESULTS":"STANDINGS",4);
-    for(unsigned i=0;i<session.players;++i) {
+    const auto order=ZrSessionStandings(session);
+    for(unsigned row=0;row<session.players;++row) {
+        const unsigned i=order.seats[row];
         char line[48],time[32];clock(time,sizeof(time),session.result[i].finish_field);
-        std::snprintf(line,sizeof(line),"P%u  %s",i+1,status(session.result[i].status));text(f,64,64+i*32,line);
-        text(f,224,64+i*32,session.result[i].status==ZrRacerStatus::Finished?time:"--:--:--");
+        if(order.places[i])std::snprintf(line,sizeof(line),"%u  P%u %s",order.places[i],i+1,status(session.result[i].status));
+        else std::snprintf(line,sizeof(line),"-  P%u %s",i+1,status(session.result[i].status));
+        text(f,32,64+row*32,line);
+        text(f,264,64+row*32,session.result[i].status==ZrRacerStatus::Finished?time:"--:--:--");
     }
     if(session.phase==ZrRacePhase::Results) {
         text(f,64,192,"START:REMATCH  B:CHANGE RACE",4);
@@ -68,7 +73,7 @@ bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& camer
           const uint8_t* rom,size_t size,ZrNativeCall native,unsigned seat,int eye,uint32_t* out) {
     auto& saved=cache[seat];
     const int32_t bias=session.result[seat].status==ZrRacerStatus::Racing?int32_t(warnings[seat].display_bias):0;
-    if(!saved.valid || std::memcmp(&saved.world,&session.world,sizeof(saved.world))
+    if(!cache_enabled || !saved.valid || std::memcmp(&saved.world,&session.world,sizeof(saved.world))
        || std::memcmp(&saved.actors,&session.actors,sizeof(saved.actors))
        || std::memcmp(&saved.camera,&cameras[seat],sizeof(saved.camera)) || saved.model_bias!=bias) {
         auto view=std::make_unique<ZrViewGeometry>();
@@ -89,7 +94,7 @@ bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& camer
     const unsigned speed=word(body+0x34);
     const unsigned display_speed=speed<1600?(speed+15)/16:speed<3200?100+(speed-1600)*700/1600:speed/4;
     std::snprintf(label,sizeof(label),"P%u  LAP %u/5",seat+1,std::min(5u,word(body+0x48)+1));text(frame,8,8,label);
-    clock(time,sizeof(time),session.race_fields);text(frame,304,8,time);
+    clock(time,sizeof(time),ZrSessionClock(session,seat));text(frame,304,8,time);
     std::snprintf(label,sizeof(label),"%03u KM/H",std::min(display_speed,999u));text(frame,280,200,label,3);
     std::snprintf(label,sizeof(label),"POWER %03u",800-std::min(800u,word(body+0x38)));text(frame,8,200,label,7);
     if(session.phase==ZrRacePhase::Countdown) {
@@ -110,6 +115,7 @@ bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& camer
 }
 bool ZrVideoInitialize(const uint8_t* rom,size_t size) {ZrVideoInvalidate();return ZrDecodeFont(font,rom,size);}
 void ZrVideoInvalidate(){for(auto& c:cache)c.valid=false;}
+void ZrVideoCacheEnable(bool enabled){cache_enabled=enabled;ZrVideoInvalidate();}
 int ZrVideoMenu(const ZrMenuState& menu,int eye,uint32_t* out) {
     if(!out || !menu.screen || eye<0 || eye>1)return 0;
     frame.levels.fill(0);frame.sources.fill({});

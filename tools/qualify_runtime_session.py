@@ -16,18 +16,22 @@ def main():
     for name in ('framework','runtime','rom','route','out'):p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--players',type=int,choices=(2,3,4),default=2)
     p.add_argument('--port',type=int,default=15931)
+    p.add_argument('--video-cache',type=int,choices=(0,1),default=1)
+    p.add_argument('--color-package',type=Path)
     p.add_argument('--state-folder',type=Path,help='Same-build native/interpreter checkpoint folder, for focused lifecycle checks')
     a=p.parse_args();a.out=a.out.resolve();a.out.mkdir(parents=True,exist_ok=False)
     sys.path.insert(0,str(a.framework.resolve()/'tools'))
     from cosim import Runner
-    report={'passed':False,'scope':__doc__,'players':a.players,'backends':{}}
+    report={'passed':False,'scope':__doc__,'players':a.players,'video_cache':a.video_cache,'backends':{}}
     try:
         for mode in ('native','interpreter'):
             folder=a.out/mode;folder.mkdir()
             native_save=folder/'protected-native.sav';native_bytes=bytes((i*29+7)&255 for i in range(65536))
             native_save.write_bytes(native_bytes)
-            extra=('--versus',str(a.players),'--versus-course','11','--save',native_save.as_posix(),
-                   '--rewind-frames','16','--rewind-interval','1')
+            extra=['--versus',str(a.players),'--versus-course','11','--save',native_save.as_posix(),
+                   '--rewind-frames','16','--rewind-interval','1','--versus-video-cache',str(a.video_cache)]
+            if a.color_package:
+                extra+=['--install-mod',a.color_package.resolve().as_posix(),'--enable-mod','zero-racers.full-color:full-color']
             with Runner(a.runtime,a.rom,mode,a.port,folder/'profile',extra=extra) as r:
                 c=r.client;remaining=2600
                 assert r.memory(0x06000000)==bytes(65536),'Versus must not load native persistent progress'

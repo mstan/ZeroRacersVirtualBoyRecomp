@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 extern "C" void vb_stub_abort(const char* reason,uint32_t pc,uint32_t address) {
@@ -64,6 +65,21 @@ int main(int argc,char** argv) {
         const std::vector<uint8_t> rom{std::istreambuf_iterator<char>(input),{}};
         require(rom.size()==1048576 && vb_crc32_compute(rom.data(),rom.size())==0x71553796,"Stock ROM identity");
         const std::array<unsigned,4> machines{0,1,2,3};
+        {
+            ZrSessionState results;results.players=4;results.race_fields=200;
+            results.result={{{ZrRacerStatus::Finished,150},{ZrRacerStatus::Crashed,0},
+                {ZrRacerStatus::Finished,100},{ZrRacerStatus::Finished,100}}};
+            const auto order=ZrSessionStandings(results);
+            require(order.seats==std::array<unsigned,4>{2,3,0,1}
+                && order.places==std::array<unsigned,4>{3,0,1,1},"Finish order, same-field competition tie, unclassified crash");
+            require(ZrSessionClock(results,0)==150 && ZrSessionClock(results,1)==200,
+                "A finisher's clock freezes while the shared race clock advances");
+            results.result[0]={ZrRacerStatus::Forfeit,0};results.result[2]={ZrRacerStatus::Forfeit,0};
+            results.result[3]={ZrRacerStatus::Survived,0};
+            const auto survivor=ZrSessionStandings(results);
+            require(survivor.seats[0]==3 && survivor.places==std::array<unsigned,4>{0,0,0,1}
+                && results.result[3].finish_field==0,"Last survivor ranks first without a fabricated time");
+        }
         for(unsigned authority=0;authority<4;++authority) {
             ZrMenuState menu;menu.screen=2;menu.players=4;menu.row=0;
             std::array<uint16_t,4> pads{};pads[authority]=VB_PAD_LRIGHT;

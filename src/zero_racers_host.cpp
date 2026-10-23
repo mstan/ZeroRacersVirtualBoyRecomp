@@ -48,14 +48,18 @@ ZrNativeCall selected_backend() {
         vb_execution.mode==VB_EXEC_NATIVE?strict_native:vb_dispatch_call;
 }
 int option(int argc,char** argv,int* index,void*) {
-    const char* argument=argv[*index];unsigned* target=nullptr;unsigned lo=0,hi=0;
+    const char* argument=argv[*index];unsigned* target=nullptr;unsigned lo=0,hi=0,video_cache=1;
     if(!std::strcmp(argument,"--versus")){target=&requested_players;lo=2;hi=4;}
     else if(!std::strcmp(argument,"--versus-course")){target=&requested_course;lo=1;hi=16;}
+#if defined(VBRECOMP_DEBUG_TOOLS)
+    else if(!std::strcmp(argument,"--versus-video-cache")){target=&video_cache;hi=1;}
+#endif
     else return 0;
     if(*index+1>=argc){error="Missing versus argument";return -1;}
     const char* text=argv[++*index];char* end=nullptr;const auto n=std::strtoul(text,&end,10);
     if(!*text || *text=='-' || *end || n<lo || n>hi){error="Invalid versus player count or course";return -1;}
     *target=unsigned(n);
+    if(target==&video_cache)ZrVideoCacheEnable(video_cache!=0);
     if(target==&requested_players)vb_host_sandbox_sram();
     return 1;
 }

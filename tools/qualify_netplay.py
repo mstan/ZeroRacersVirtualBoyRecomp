@@ -37,7 +37,11 @@ def main():
     p.add_argument('--state-operations',action='store_true',help='Qualify host-synchronized between-race slots and repeated input epoch resets')
     p.add_argument('--room-rematches',type=int,choices=(0,1,2),default=0,help='Return to the shared room and relaunch in the same processes')
     p.add_argument('--color-package',type=Path,help='Install and enable the same optional full-color package on every peer')
+    p.add_argument('--uncached-peer',type=int,choices=(0,1,2,3),help='Use the portable uncached video path on one peer')
+    p.add_argument('--online-path',choices=('ice',),help='Real shared online lobby and adopted host ICE transport')
+    p.add_argument('--online-url',help='Override the shared lobby URL for a scoped server fixture')
     a=p.parse_args();a.out=a.out.resolve();a.out.mkdir(parents=True,exist_ok=False)
+    if a.online_path:a.shared_room=True
     if a.window and not a.shared_room:p.error('--window requires --shared-room')
     if a.room_rematches and not a.shared_room:p.error('--room-rematches requires --shared-room')
     sys.path.insert(0,str(a.framework.resolve()/'tools'));from cosim import Runner
@@ -63,7 +67,7 @@ def main():
             self.process=subprocess.Popen(args,cwd=self.directory,stdout=self.stdout_log,stderr=self.stderr_log,env=environment,
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
         def attach(self):
-            deadline=time.monotonic()+20
+            deadline=time.monotonic()+(70 if a.online_path else 20)
             while self.client is None:
                 if self.process.poll() is not None:raise RuntimeError(f'Room peer exited: {self.directory}')
                 try:self.client=DebugClient(self.port,timeout=15)
@@ -71,7 +75,8 @@ def main():
                     if time.monotonic()>deadline:raise TimeoutError(f'Room peer startup: {self.directory}')
                     time.sleep(.01)
             assert self.client.command('frame')['frame']==0,'Shared launch ran before continuation'
-    report={'passed':False,'scope':__doc__,'players':a.players,'checkpoints':[]};runners=[];saves=[]
+    report={'passed':False,'scope':__doc__,'players':a.players,'runtime_sha256':hashlib.sha256(a.runtime.read_bytes()).hexdigest(),
+        'rom_sha256':hashlib.sha256(a.rom.read_bytes()).hexdigest(),'checkpoints':[]};runners=[];saves=[]
     try:
         for slot in range(a.players):
             extra=['--net-players',str(a.players),'--net-slot',str(slot),'--net-session','329128105',
@@ -84,6 +89,13 @@ def main():
                        '--net-name','Same name','--versus-course','11']
                 if slot==0 and a.room_capacity:extra+=['--net-test-room-capacity',str(a.room_capacity)]
                 if slot==0 and a.host_seat is not None:extra+=['--net-test-host-seat',str(a.host_seat)]
+                if a.online_path:
+                    extra=['--net-players',str(a.players),'--net-bind',f'0.0.0.0:{a.wire_port+slot}',
+                        '--net-online-host' if slot==0 else '--net-online-join',(a.out/'online-room.txt').as_posix(),
+                        '--net-online-path',a.online_path,'--net-name',f'VB QA {a.port} seat {slot}']
+                    if a.online_url:extra+=['--net-online-url',a.online_url]
+                    if slot==0 and a.room_capacity:extra+=['--net-test-room-capacity',str(a.room_capacity)]
+                    if slot==0 and a.host_seat is not None:extra+=['--net-test-host-seat',str(a.host_seat)]
             folder=a.out/f'peer-{slot}';folder.mkdir()
             save=folder/'protected-native.sav';native=bytes((i*29+7+slot)&255 for i in range(65536));save.write_bytes(native)
             saves.append((save,native));extra+=['--save',save.as_posix()]
@@ -92,8 +104,11 @@ def main():
             settings={'RNET_SIM_LATENCY_MS':str(a.latency_ms),'RNET_SIM_JITTER_MS':str(a.jitter_ms),
                       'RNET_SIM_LOSS_PCT':str(a.loss_pct),'RNET_SIM_SEED':str(91231+slot),
                       'VB_RB_FORCE_MISPREDICT':str(a.force_mispredict if slot==0 else 0)}
+            if a.online_url and a.online_url.startswith('ws://127.0.0.1:'):
+                settings.update(RNET_HOST_ICE_NO_STUN='1',RNET_HOST_RELAY_NO_ROUTER='1')
             saved={key:os.environ.get(key) for key in settings}
             try:
+                if slot==a.uncached_peer:extra+=['--versus-video-cache','0']
                 os.environ.update(settings)
                 runners.append((RoomRunner if a.shared_room else Runner)(a.runtime,a.rom,'interpreter' if a.mixed and slot%2 else 'native',
                     a.port+slot,a.out/f'peer-{slot}',extra=extra))
@@ -159,13 +174,14 @@ def main():
                 time.sleep(.005)
             target=max(s['tick'] for s in live)+64
         states=park(target)
+        if a.force_mispredict:assert sum(s['resim'] for s in states)>0,'No actual replay executed before state/lifecycle operations'
+        if a.state_operations or a.room_rematches:report['before_state_and_return']={'tick':target,'peers':states}
         if a.state_operations:
             from qualify_online_states import qualify
             target,states,report['online_states']=qualify(runners,a,park,target)
         if a.room_rematches:
             from qualify_room_return import qualify
             target,states,report['room_return']=qualify(runners,a,park,target)
-        for r in runners:r.client.command('pause')
         snapshots=[];games=[]
         for slot,r in enumerate(runners):
             path=a.out/f'peer-{slot}'/'parked.state';r.client.command('save_state',path=path.as_posix())
@@ -209,7 +225,7 @@ def main():
             'pcm_bytes':len(audio[0]),'pcm_sha256':hashlib.sha256(audio[0]).hexdigest()})
         if a.route:assert all(g['phase'] in (3,4) and g['race_fields']>0 for g in games),'No shared race executed'
         if a.force_mispredict and not a.state_operations:assert sum(s['resim'] for s in states)>0,'No actual replay executed'
-        report['conditions']={k:getattr(a,k) for k in ('mixed','shared_room','native_setup_map','room_capacity','host_seat','window','latency_ms','jitter_ms','loss_pct','force_mispredict')}
+        report['conditions']={k:getattr(a,k) for k in ('mixed','shared_room','native_setup_map','room_capacity','host_seat','window','latency_ms','jitter_ms','loss_pct','force_mispredict','online_path','online_url')}
         report['passed']=True
     except Exception as error:report['error']=repr(error);report['traceback']=traceback.format_exc()
     finally:

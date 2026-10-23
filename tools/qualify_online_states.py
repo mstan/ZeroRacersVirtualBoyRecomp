@@ -36,17 +36,13 @@ def qualify(runners,args,park,target):
     def raw_state(r,name):
         path=r.directory/(name+'.state');r.client.command('save_state',path=path.as_posix());return path.read_bytes()
     def frozen_refusal(path):
-        for r in runners:r.client.command('pause')
         before=[raw_state(r,'before-refusal') for r in runners]
         expect_refused(runners[0],path,False)
         after=[raw_state(r,'after-refusal') for r in runners]
         assert before==after,'Rejected online load changed execution bytes'
-        for r in runners:r.client.command('continue')
     host=runners[0];save=host.directory/'online-slot.state'
     for r in runners:expect_refused(r,save,True)
-    for r in runners:r.client.command('pause')
     racing=raw_state(host,'racing-candidate')
-    for r in runners:r.client.command('continue')
     for pad in (4096,0,8192,0):advance(pad)
     assert all(r.client.command('game_status')['phase']==4 for r in runners),'Controllers did not retire the race'
     for r in runners[1:]:expect_refused(r,save,True)

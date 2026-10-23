@@ -85,6 +85,28 @@ bool ZrSessionStart(ZrSessionState& state) {
     if(state.phase!=ZrRacePhase::Ready)return false;
     state.phase=ZrRacePhase::Countdown;state.countdown=150;state.menu_mask=0;return true;
 }
+ZrStandings ZrSessionStandings(const ZrSessionState& s) {
+    ZrStandings out;
+    const unsigned players=std::min(s.players,ZrMaxPlayers);
+    for(unsigned i=0;i<players;++i)out.seats[i]=i;
+    auto classified=[&](unsigned i){return s.result[i].status==ZrRacerStatus::Finished
+        || s.result[i].status==ZrRacerStatus::Survived;};
+    std::stable_sort(out.seats.begin(),out.seats.begin()+players,[&](unsigned a,unsigned b){
+        if(classified(a)!=classified(b))return classified(a);
+        return classified(a) && s.result[a].finish_field<s.result[b].finish_field;
+    });
+    for(unsigned row=0;row<players;++row) {
+        const unsigned seat=out.seats[row];if(!classified(seat))continue;
+        out.places[seat]=row && s.result[seat].status==s.result[out.seats[row-1]].status
+            && s.result[seat].finish_field==s.result[out.seats[row-1]].finish_field
+            ?out.places[out.seats[row-1]]:row+1;
+    }
+    return out;
+}
+unsigned ZrSessionClock(const ZrSessionState& s,unsigned seat) {
+    return seat<s.players && s.result[seat].status==ZrRacerStatus::Finished
+        ?s.result[seat].finish_field:s.race_fields;
+}
 bool ZrSessionValidate(const ZrSessionState& s,const uint8_t* rom,size_t size) {
     if(!cartridge(rom,size) || s.version!=1 || s.physics_phase>=3 || s.players>ZrMaxPlayers
        || s.phase>ZrRacePhase::Results)return false;

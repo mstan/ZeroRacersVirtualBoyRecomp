@@ -34,6 +34,13 @@ bool ZrSessionInitialize(ZrSessionState&,unsigned course,
                          uint32_t seed,const uint8_t* rom,size_t);
 bool ZrSessionStart(ZrSessionState&);
 bool ZrSessionValidate(const ZrSessionState&,const uint8_t* rom,size_t);
+struct ZrStandings {
+    std::array<unsigned,ZrMaxPlayers> seats{};
+    // Indexed by seat. Zero means unclassified; equal-field finishes tie.
+    std::array<unsigned,ZrMaxPlayers> places{};
+};
+ZrStandings ZrSessionStandings(const ZrSessionState&);
+unsigned ZrSessionClock(const ZrSessionState&,unsigned seat);
 // One sealed display-field input bundle. The same function drives live play
 // and rollback. Native physics runs once per three fields; menus never pause.
 bool ZrSessionStep(ZrSessionState&,const std::array<ZrSeatInput,ZrMaxPlayers>&,

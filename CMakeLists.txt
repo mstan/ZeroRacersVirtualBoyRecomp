@@ -5,6 +5,7 @@ set(VBRECOMP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vbrecomp" CACHE PATH "vbrecomp ch
 set(RECOMP_UI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui" CACHE PATH "recomp-ui checkout")
 option(ZERO_RACERS_UI "Build the shared launcher and settings" ON)
 option(ZERO_RACERS_NETPLAY "Build the shared versus network host" ON)
+option(RNET_ENABLE_ICE "Build the current shared online transport (LAN works without it)" ON)
 set(VBRECOMP_NETPLAY ${ZERO_RACERS_NETPLAY})
 if(NOT EXISTS "${VBRECOMP_ROOT}/CMakeLists.txt")
     message(FATAL_ERROR "Initialize dependencies with git submodule update --init --recursive, or set VBRECOMP_ROOT.")
