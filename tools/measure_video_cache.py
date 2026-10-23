@@ -15,6 +15,7 @@ from pathlib import Path
 import statistics
 import sys
 import time
+from versus_test_mod import versus_mod_args
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -91,6 +92,7 @@ def main():
         for index,enabled in enumerate(order):
             load=quiet();folder=a.out/f'{index:02d}-cache{enabled}'
             extra=['--versus',str(a.players),'--versus-course','11','--versus-video-cache',str(enabled)]
+            extra+=versus_mod_args(a.runtime)
             if a.color_package:extra+=['--install-mod',str(a.color_package.resolve()),'--enable-mod','zero-racers.full-color:full-color']
             with Runner(a.runtime,a.rom,'native',16131,folder,extra=extra,window=True) as r:
                 q=r.client;q.command('rewind_enable',value=0)

@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import struct
 import sys
+from versus_test_mod import versus_mod_args
 import zlib
 
 def main():
@@ -21,7 +22,7 @@ def main():
     try:
         for mode in ('native','interpreter'):
             folder=a.out/mode;folder.mkdir();save=folder/'native-progress.sav';save.write_bytes(bytes(65536))
-            with Runner(a.runtime,a.rom,mode,a.port,folder/'profile',extra=('--save',save.as_posix()),window=True) as r:
+            with Runner(a.runtime,a.rom,mode,a.port,folder/'profile',extra=('--save',save.as_posix(),*versus_mod_args(a.runtime)),window=True) as r:
                 c=r.client
                 def fields(n):
                     while n:

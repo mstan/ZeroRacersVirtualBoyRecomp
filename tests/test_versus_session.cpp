@@ -124,7 +124,7 @@ int main(int argc,char** argv) {
         for(unsigned players=2;players<=4;++players)for(unsigned course=1;course<=16;++course) {
             require(ZrSessionInitialize(state,course,machines,players,0x12345678,rom.data(),rom.size()),"Initialize native course/grid");
             require(ZrSessionStart(state),"Begin countdown");
-            for(unsigned field=0;field<150;++field)require(step(state,{},rom,events),"Countdown step");
+            for(unsigned field=0;field<ZrCountdownFields;++field)require(step(state,{},rom,events),"Countdown step");
             require(state.phase==ZrRacePhase::Racing && state.race_fields==0,"Countdown has no race time");
             const auto initial=state.actors;
             for(unsigned field=0;field<24;++field) {

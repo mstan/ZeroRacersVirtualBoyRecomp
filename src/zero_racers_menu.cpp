@@ -1,7 +1,7 @@
 #include "zero_racers_menu.h"
 #include "input.h"
 bool ZrMenuValidate(const ZrMenuState& m) {
-    if(m.screen>2 || m.highlight>1 || m.players<2 || m.players>4 || m.course<1 || m.course>16
+    if(m.screen>2 || m.highlight>1 || m.title_phase>15 || m.players<2 || m.players>4 || m.course<1 || m.course>16
        || m.row>m.players+2 || m.ready_mask>>m.players || m.pending_launch>1 || m.native_launch>1)return false;
     for(unsigned i=0;i<4;++i)if(m.machines[i]>=4 || m.previous[i]>65535)return false;
     return true;

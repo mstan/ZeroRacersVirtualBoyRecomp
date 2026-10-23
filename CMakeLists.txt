@@ -20,7 +20,13 @@ if(Python3_Interpreter_FOUND)
         DEPENDS mods/full-color/manifest.toml mods/full-color/palette.txt mods/full-color/materials.txt mods/full-color/models.txt
             "${VBRECOMP_ROOT}/tools/pack_mod.py"
         VERBATIM)
-    add_custom_target(zero-racers-mods ALL DEPENDS "${_color_package}")
+    set(_multiplayer_package "${CMAKE_CURRENT_BINARY_DIR}/mod-packages/zero-racers-multiplayer-0.1.0.vbmod")
+    add_custom_command(OUTPUT "${_multiplayer_package}"
+        COMMAND "${Python3_EXECUTABLE}" "${VBRECOMP_ROOT}/tools/pack_mod.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/mods/multiplayer" "${_multiplayer_package}"
+        DEPENDS mods/multiplayer/manifest.toml "${VBRECOMP_ROOT}/tools/pack_mod.py"
+        VERBATIM)
+    add_custom_target(zero-racers-mods ALL DEPENDS "${_color_package}" "${_multiplayer_package}")
 endif()
 set(VBRECOMP_GAME zero_racers CACHE STRING "Generated cartridge module" FORCE)
 if(ZERO_RACERS_UI)
@@ -94,6 +100,9 @@ if(ZERO_RACERS_UI)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_CURRENT_SOURCE_DIR}/assets/NOTICE.md"
             "$<TARGET_FILE_DIR:vb-runtime>/assets/GAME-ART-NOTICE.md"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/mods/multiplayer"
+            "$<TARGET_FILE_DIR:vb-runtime>/mods/packages/zero-racers.multiplayer/0.1.0"
         VERBATIM)
     add_dependencies(vb-runtime zero-racers-assets)
 endif()

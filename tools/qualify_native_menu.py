@@ -11,6 +11,7 @@ import sys
 import time
 import traceback
 from PIL import Image
+from versus_test_mod import versus_mod_args
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -25,7 +26,7 @@ def main():
     try:
         for mode in ('native','interpreter'):
             folder=a.out/mode;folder.mkdir()
-            extra=['--no-save']
+            extra=['--no-save',*versus_mod_args(a.runtime)]
             if a.color_package:extra+=['--install-mod',str(a.color_package.resolve()),'--enable-mod','zero-racers.full-color:full-color']
             with Runner(a.runtime,a.rom,mode,a.port,folder/'profile',extra=tuple(extra),window=a.window) as r:
                 c=r.client
@@ -42,9 +43,10 @@ def main():
                     c.command('set_input',pad=pad if seat==0 else 0)
                     c.command('game_inputs',**{f'pad{seat}':pad});fields(4)
                     c.command('set_input',pad=0);c.command('game_inputs');fields(4)
-                title_checks=[];reference_glyphs={}
+                title_checks=[];reference_glyphs={};record_reference={};vs_blinks={}
                 def title_capture(name,selected=False):
                     before=c.command('state_digest')['digest']
+                    status=c.command('game_status');phase=status['menu']['title_phase']
                     for eye in range(2):
                         image=folder/f'{name}-eye{eye}.png';native=folder/f'{name}-native-eye{eye}.png'
                         assert c.command('screenshot',game=1,eye=eye,path=image.as_posix())['ok']
@@ -56,15 +58,22 @@ def main():
                             for row in range(4):
                                 # Ignore cursor flanks; all four original labels
                                 # must retain their exact pixels and colors.
-                                assert shown.crop((160,92+22*row,224,108+22*row)).tobytes()==original.crop((160,96+24*row,224,112+24*row)).tobytes(),'Native label changed'
+                                source=original.crop((160,96+24*row,224,112+24*row)).tobytes()
+                                if row==3:
+                                    if eye not in record_reference:record_reference[eye]=source
+                                    if selected:source=record_reference[eye]
+                                assert shown.crop((160,92+22*row,224,108+22*row)).tobytes()==source,('Native label changed',name,row)
                             body=shown.crop((161,180,223,196)).convert('RGB')
-                            bbox=body.getbbox();assert bbox and bbox[3]-bbox[1]>=14,'VS still uses small/missing lettering'
+                            bbox=body.getbbox()
+                            if not selected or phase>=8:assert bbox and bbox[3]-bbox[1]>=14,'VS still uses small/missing lettering'
+                            vs_blinks.setdefault((status['menu']['highlight'],eye),set()).add(body.tobytes())
                             for dx,sx,sy in ((188,167,144),(197,192,168),(206,210,168),(215,174,168)):
                                 key=(eye,dx)
                                 # Native selection overlays alter the selected
                                 # word's art. Compare with its unselected form.
                                 if key not in reference_glyphs:reference_glyphs[key]=original.crop((sx,sy,sx+8,sy+16)).tobytes()
-                                assert shown.crop((dx,180,dx+8,196)).tobytes()==reference_glyphs[key],('VS native-letter shade/shape mismatch',name,eye,dx)
+                                if not selected or phase>=8:
+                                    assert shown.crop((dx,180,dx+8,196)).tobytes()==reference_glyphs[key],('VS native-letter shade/shape mismatch',name,eye,dx)
                             if a.color_package and eye==0:
                                 assert any(r!=g or g!=b for r,g,b in shown.crop((70,24,316,72)).convert('RGB').get_flattened_data()),'Color title absent'
                     if a.window:
@@ -75,15 +84,23 @@ def main():
                             assert window.size==left.size==(384,224),'Single-eye window size differs'
                             assert window.convert('RGB').tobytes()==left.convert('RGB').tobytes(),'Window differs from the reviewed menu'
                     assert c.command('state_digest')['digest']==before,'Presentation mutated canonical state'
-                    title_checks.append({'capture':name,'selected':selected,'both_eyes':True,'native_art_and_spacing':True})
+                    title_checks.append({'capture':name,'selected':selected,'phase':phase,'both_eyes':True,'native_art_and_spacing':True})
                 for row in range(5):
                     assert c.command('game_status')['menu']['highlight']==(1 if row==4 else 0)
                     title_capture(f'title-row{row}',row==4)
+                    phases=set()
+                    for elapsed in range(256):
+                        fields(1);phase=c.command('game_status')['menu']['title_phase']
+                        if phase not in phases:
+                            title_capture(f'title-row{row}-phase{phase:02}',row==4);phases.add(phase)
+                        if len(phases)==16:break
+                    assert len(phases)==16,('Full native blink cycle not exercised',row,phases)
                     if row<4:pulse(1024)
+                for eye in range(2):
+                    assert len(vs_blinks[0,eye])==1,'Unselected VS follows another native word blink'
+                    assert len(vs_blinks[1,eye])==2,'Selected VS does not own its blink'
                 status=c.command('game_status');assert status['menu']['highlight']==1,status
                 c.command('save_state',path=(folder/'title.state').as_posix())
-                for phase in range(32):
-                    fields(1);title_capture(f'title-blink{phase:02}',True)
                 for _ in range(4):pulse(2048)
                 assert c.command('game_status')['menu']['highlight']==0
                 c.command('load_state',path=(folder/'title.state').as_posix())
@@ -151,7 +168,7 @@ def main():
         assert report['backends']['native']['changed_digest']==report['backends']['interpreter']['changed_digest']
         names=['title-vs.png','setup.png','after.state','after-rematch.state','after-change.state','canvas-eye0.png','canvas-eye1.png']
         names += [f'title-row{row}-eye{eye}.png' for row in range(5) for eye in range(2)]
-        names += [f'title-blink{phase:02}-eye{eye}.png' for phase in range(32) for eye in range(2)]
+        names += [f'title-row{row}-phase{phase:02}-eye{eye}.png' for row in range(5) for phase in range(16) for eye in range(2)]
         names += [f'title-restored-eye{eye}.png' for eye in range(2)]
         for name in names:
             left=(a.out/'native'/name).read_bytes();right=(a.out/'interpreter'/name).read_bytes()

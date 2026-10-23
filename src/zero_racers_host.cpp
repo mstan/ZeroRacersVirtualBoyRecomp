@@ -26,7 +26,7 @@ struct LaunchState {
 };
 struct GameState {LaunchState launch;ZrSessionState session;std::array<ZrCameraState,4> cameras;ZrMenuState menu;
     std::array<ZrWarningState,4> warnings;uint32_t return_requested=0,return_tick=0;};
-static_assert(sizeof(LaunchState)==36 && sizeof(ZrMenuState)==64 && sizeof(GameState)==4736,"Canonical launch/camera/menu/warning/return layout");
+static_assert(sizeof(LaunchState)==36 && sizeof(ZrMenuState)==68 && sizeof(GameState)==4740,"Canonical launch/camera/menu/warning/return layout");
 GameState game;
 ZrSessionState& session=game.session;
 LaunchState& launch=game.launch;
@@ -36,6 +36,11 @@ const char* error="";
 const uint8_t* rom;
 size_t rom_size;
 bool points_ready;
+// The mod plan is applied at a cold game start/reset. Runtime settings can
+// stage the next launch without disabling a live race or its SRAM sandbox.
+bool multiplayer_requested=false,multiplayer_enabled=false;
+void disable_multiplayer(){multiplayer_requested=false;}
+void enable_multiplayer(){multiplayer_requested=true;}
 LaunchState configuration(unsigned players,unsigned course,const std::array<unsigned,4>& selected,unsigned seed) {
     return {players,course,selected,seed,uint32_t(vb_netplay_enabled()!=0),unsigned(vb_netplay_authority_seat())};
 }
@@ -66,6 +71,7 @@ int option(int argc,char** argv,int* index,void*) {
 int validate(const void* data,size_t size,void*) {
     if(size!=sizeof(game))return 0;
     GameState candidate;std::memcpy(&candidate,data,size);
+    if(!multiplayer_enabled && (candidate.launch.players || candidate.menu.screen || candidate.session.phase!=ZrRacePhase::Empty))return 0;
     if(candidate.launch.network!=uint32_t(vb_netplay_enabled()!=0)
        || candidate.launch.authority!=unsigned(vb_netplay_authority_seat()))return 0;
     if(candidate.launch.network && candidate.launch.players!=unsigned(vb_netplay_players()))return 0;
@@ -87,7 +93,7 @@ void loaded(void*) {
     ZrVideoInvalidate();
     // The exact simulation profile stays fixed; restoring only changes whether
     // the loaded session is active. All derived camera caches are separate.
-    vb_simulation_points_enable(1);
+    vb_simulation_points_enable(multiplayer_enabled);
     if(launch.players) {
         if(!vb_host_begin_multiplayer_sram(vb_state_previous_sram()))error="Cannot protect native single-player progress";
     } else if(!vb_host_end_multiplayer_sram(false))error="Cannot preserve native single-player progress";
@@ -108,8 +114,10 @@ void sync_guest(CPUState* cpu) {
     cpu->write32(0x05001148,session.actors[0].native_1148);
 }
 int point(CPUState* cpu,void*) {
+    if(!multiplayer_enabled)return 0;
     if(cpu->pc==0xfff21d12u && session.phase==ZrRacePhase::Empty && (!launch.players || vb_netplay_native_setup())) {
         auto& menu=game.menu;
+        menu.title_phase=cpu->gpr[22]&15;
         if(vb_netplay_native_setup() && !menu.screen) {
             menu.screen=2;menu.players=launch.players;menu.course=launch.course;menu.machines=launch.machines;
             menu.row=2+launch.authority;menu.ready_mask=0;menu.previous={};
@@ -147,10 +155,9 @@ int point(CPUState* cpu,void*) {
         game.menu.screen=0;cpu->pc=0xfff0fd1cu;return 1;
     }
     if(cpu->pc==0xfff10c70u && session.phase==ZrRacePhase::Ready) {
-        // Native fly-in has completed. Versus owns its shared 150-field
-        // countdown and the same original F3 beep/GO commands, exactly once.
+        // Native fly-in has completed. Versus owns the original four-beat
+        // lead-in/READY/GO cadence; each shared command is emitted once.
         if(!ZrSessionStart(session))vb_stub_abort("versus countdown failed",cpu->pc,0);
-        cpu->write8(0x050000f3,5);
         cpu->write16(0x0003d908,0x100);cpu->write16(0x0003d8e8,0x100);
         cpu->pc=0xfff10d30u;return 1;
     }
@@ -181,7 +188,6 @@ int point(CPUState* cpu,void*) {
         if(cpu->pc==0xfff0f4c4u) {
             if(session.phase==ZrRacePhase::Ready) {
                 if(!ZrSessionStart(session))vb_stub_abort("versus countdown failed",cpu->pc,0);
-                cpu->write8(0x050000f3,5);
             }
             sync_guest(cpu);cpu->pc=0xfff0f65au;return 1;
         }
@@ -212,22 +218,26 @@ int point(CPUState* cpu,void*) {
 }
 int restart(CPUState*,void*) {
     game={};error="";
+    multiplayer_enabled=multiplayer_requested;
+    if(!multiplayer_enabled && (requested_players || vb_netplay_enabled())) {
+        error="Enable Multiplayer (2–4 players) on the Mods page before starting versus or netplay.";return 0;
+    }
     rom=vb_rom_data();rom_size=vb_rom_size();
     if(!rom || rom_size!=1048576)return 0;
     if(!ZrVideoInitialize(rom,rom_size)){error="Cannot decode stock versus artwork";return 0;}
     launch=configuration(vb_netplay_enabled()?unsigned(vb_netplay_players()):requested_players,requested_course,machines,1);
-    return !points_ready || vb_simulation_points_enable(1);
+    return !points_ready || vb_simulation_points_enable(multiplayer_enabled);
 }
 int initialize(CPUState* cpu,void*) {
     if(!restart(cpu,nullptr))return 0;
-    if(!vb_state_register_simulation("zero-racers.versus.v3",&game,sizeof(game),validate,loaded,nullptr))return 0;
+    if(!vb_state_register_simulation("zero-racers.versus.v4",&game,sizeof(game),validate,loaded,nullptr))return 0;
     for(uint32_t pc:{0xfff0ff64u,0xfff1047eu,0xfff0f4c4u,0xfff0f77eu,0xfff21d12u,0xfff221dcu,0xfff0fc5cu,
                      0xfff10c70u,0xfff0fa7au,0xfff0fe5au,0xfff0fb8au}) {
         const auto* instruction=rom+(pc&0xfffff);
         if(!vb_simulation_point_register(pc,uint16_t(instruction[0]|uint16_t(instruction[1])<<8),point,nullptr))return 0;
     }
     points_ready=true;
-    return vb_simulation_points_enable(1);
+    return vb_simulation_points_enable(multiplayer_enabled);
 }
 void commit_environment(CPUState* cpu,const ZrEnvironmentEvents& e,bool primary) {
     if(primary && (e.written&1))cpu->write32(0x05001160,e.native_1160);
@@ -244,6 +254,7 @@ void commit_human(CPUState* cpu,const ZrActorEvents& e,bool primary) {
     if(e.written&32)cpu->write8(0x050000f3,e.native_f3);
 }
 void field(CPUState* cpu,const VbGameInputs* bundle,void*) {
+    if(!multiplayer_enabled)return;
     if(game.return_requested)return;
     if(game.menu.screen==2) {
         std::array<uint16_t,4> pads{};for(unsigned i=0;i<4;++i)pads[i]=bundle->buttons[i];
@@ -303,7 +314,7 @@ void field(CPUState* cpu,const VbGameInputs* bundle,void*) {
             }
         }
     if(countdown && session.phase==ZrRacePhase::Countdown
-       && (session.countdown==100 || session.countdown==50))cpu->write8(0x050000f3,5);
+       && (ZrCountdownFields-session.countdown)%ZrCountdownBeat==0)cpu->write8(0x050000f3,5);
     if(countdown && session.phase==ZrRacePhase::Racing)cpu->write8(0x050000f3,6);
 }
 const char* get_error(void*){return error;}
@@ -334,14 +345,17 @@ int debug(const char* command,long long id,char* out,size_t capacity,void*) {
                i?",":"",i,int32_t(word(body)),int32_t(word(body+4)),int32_t(word(body+8)),word(body+0x34),word(body+0x38),
                word(body+0x3c),word(body+0x48),unsigned(session.result[i].status),session.result[i].finish_field);
     }
-    append("],\"countdown\":%u,\"menu\":{\"screen\":%u,\"highlight\":%u,\"row\":%u,\"players\":%u,\"course\":%u,\"ready_mask\":%u}}",
-           session.countdown,
-           game.menu.screen,game.menu.highlight,game.menu.row,game.menu.players,game.menu.course,game.menu.ready_mask);
+    append("],\"countdown\":%u,\"multiplayer_enabled\":%s,\"menu\":{\"screen\":%u,\"highlight\":%u,\"row\":%u,\"players\":%u,\"course\":%u,\"ready_mask\":%u,\"title_phase\":%u}}",
+           session.countdown,multiplayer_enabled?"true":"false",
+           game.menu.screen,game.menu.highlight,game.menu.row,game.menu.players,game.menu.course,game.menu.ready_mask,game.menu.title_phase);
     if(used>=capacity)std::snprintf(out,capacity,"{\"ok\":false,\"error\":\"Game status capacity\"}");
     return 1;
 }
 }
 VB_MOD_CONSTRUCTOR(register_versus_host) {
+    if(!vb_mod_register_reset_callback(disable_multiplayer)
+       || !vb_mod_register_activation_plugin("zero-racers.multiplayer",enable_multiplayer))
+        vb_stub_abort("cannot register multiplayer mod",0,0);
     const VbGameHost adapter{"zero-racers.versus",nullptr,option,get_error,initialize,field,can_pause,debug,video_size,video_render,4,restart,lobby_return};
     if(!vb_game_host_register(&adapter))vb_stub_abort("cannot register versus host",0,0);
 }

@@ -54,7 +54,10 @@ separately.
 
 ## Versus mode
 
-Choose **VS MODE** on the title screen for two to four human racers. Choose
+On **Mods**, enable **Multiplayer (2-4 players)** before launching. The bundled
+mod is installed and disabled by default; turning it off restores the stock
+four-choice title. Changes take effect when the game restarts. Then choose
+**VS MODE** on the title screen for two to four human racers. Choose
 the course and machines, have every racer press A to ready, then start the
 race. Assign local controllers in the launcher's controller settings. Two
 players share a top/bottom split; three or four use a four-pane layout, with

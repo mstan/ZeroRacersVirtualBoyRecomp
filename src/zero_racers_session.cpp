@@ -83,7 +83,7 @@ bool ZrSessionInitialize(ZrSessionState& state,unsigned course,
 }
 bool ZrSessionStart(ZrSessionState& state) {
     if(state.phase!=ZrRacePhase::Ready)return false;
-    state.phase=ZrRacePhase::Countdown;state.countdown=150;state.menu_mask=0;return true;
+    state.phase=ZrRacePhase::Countdown;state.countdown=ZrCountdownFields;state.menu_mask=0;return true;
 }
 ZrStandings ZrSessionStandings(const ZrSessionState& s) {
     ZrStandings out;
@@ -112,7 +112,7 @@ bool ZrSessionValidate(const ZrSessionState& s,const uint8_t* rom,size_t size) {
        || s.phase>ZrRacePhase::Results)return false;
     if(s.phase==ZrRacePhase::Empty)return s.players==0;
     if(s.players<2 || s.world.course<1 || s.world.course>16 || !machine(s.world.native_10fc)
-       || s.menu_mask>>s.players || s.countdown>150 || s.race_fields>s.tick)return false;
+       || s.menu_mask>>s.players || s.countdown>ZrCountdownFields || s.race_fields>s.tick)return false;
     const uint32_t sectors=word(rom+0xcb054+s.world.course*16);
     for(unsigned i=0;i<s.result.size();++i) {
         if(s.blocked_buttons[i]>65535 || (i>=s.players && s.blocked_buttons[i]))return false;

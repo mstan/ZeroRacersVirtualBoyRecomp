@@ -2,6 +2,9 @@
 #include "zero_racers_camera.h"
 
 constexpr unsigned ZrMaxPlayers=4;
+// Native 10C70..10D20: twelve four-field updates per beat, three READY
+// beeps after the lead-in, then GO; the label is visible for eight updates.
+constexpr unsigned ZrCountdownBeat=48,ZrCountdownVisible=32,ZrCountdownFields=192;
 enum class ZrRacePhase:uint32_t { Empty, Ready, Countdown, Racing, Results };
 enum class ZrRacerStatus:uint32_t { Absent, Racing, Finished, Crashed, Forfeit, Survived };
 struct ZrRacerResult {

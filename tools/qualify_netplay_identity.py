@@ -9,6 +9,7 @@ from pathlib import Path
 import json
 import re
 import sys
+from versus_test_mod import versus_mod_args
 import time
 import traceback
 import zipfile
@@ -39,6 +40,7 @@ def main():
                     if slot==0 or case=='same-plugin-different-assets':
                         package=a.package if slot==0 else changed
                         extra+=['--install-mod',package.resolve().as_posix(),'--enable-mod','zero-racers.full-color:full-color']
+                    extra+=versus_mod_args(a.runtime)
                     runners.append(Runner(a.runtime,a.rom,'native',a.port+slot,profile,extra=extra))
                 for r in runners:r.client.command('continue')
                 deadline=time.monotonic()+35

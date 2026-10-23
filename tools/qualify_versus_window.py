@@ -12,6 +12,7 @@ import struct
 import subprocess
 import sys
 import time
+from versus_test_mod import versus_mod_args
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -35,6 +36,7 @@ def main():
                  '--config',str(settings),'--mods-dir',str(profile/'mods'),'--port',str(a.port),
                  '--state-file',str(profile/'quick.state'),
                  '--versus',str(a.players),'--versus-course','11','--rewind-frames','8','--rewind-interval','1']
+        command+=versus_mod_args(a.runtime)
         env={k:v for k,v in os.environ.items() if not k.startswith('VBRECOMP_')}
         env.update(SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',SDL_RENDER_DRIVER='software',
                    SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT='0xffff/0xffff')

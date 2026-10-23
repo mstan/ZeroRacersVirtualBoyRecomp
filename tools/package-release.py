@@ -85,6 +85,17 @@ info = {'version': (ROOT / 'VERSION').read_text().strip(),
         'default_color_enabled': False,
         'optional_mod': {'file': mod.name, 'id': manifest['id'],
                          'version': manifest['version'], 'sha256': sha(mod)}}
+multi_source=ROOT/'mods/multiplayer'
+multi_manifest=tomllib.loads((multi_source/'manifest.toml').read_text(encoding='utf-8'))
+if any(f.get('default_enabled',False) for f in multi_manifest['feature']):
+    raise SystemExit('Multiplayer must be opt-in')
+multi=args.build/'mod-packages'/f"zero-racers-multiplayer-{multi_manifest['version']}.vbmod"
+with zipfile.ZipFile(multi) as z:
+    sources={p.relative_to(multi_source).as_posix():p for p in multi_source.rglob('*') if p.is_file()}
+    if set(z.namelist())!=set(sources) or any(z.read(n)!=p.read_bytes() for n,p in sources.items()):
+        raise SystemExit('Rebuild the multiplayer package: contents differ from source')
+info['multiplayer_mod']={'file':multi.name,'id':multi_manifest['id'],'version':multi_manifest['version'],
+                         'sha256':sha(multi),'default_enabled':False,'preinstalled':True}
 for name, tree in [('vbrecomp', args.framework), ('recomp-ui', args.ui)]:
     if git(ROOT, 'rev-parse', f'HEAD:{name}') != git(tree, 'rev-parse', 'HEAD'):
         raise SystemExit(f'Build dependency does not match committed pin: {name}')
@@ -96,6 +107,8 @@ with tempfile.TemporaryDirectory(prefix='zero-racers-release-', dir=args.out) as
     shutil.copy2(exe, stage / exe.name)
     shutil.copytree(exe.parent / 'assets', stage / 'assets')
     shutil.copy2(mod, stage / mod.name)
+    shutil.copy2(multi,stage/multi.name)
+    shutil.copytree(multi_source,stage/'mods/packages'/multi_manifest['id']/multi_manifest['version'])
     licenses = stage / 'licenses'
     shutil.copytree(ROOT / 'assets/licenses', licenses)
     for source, dest in [(ROOT / 'LICENSE.md', 'project.txt'),
@@ -144,6 +157,8 @@ with tempfile.TemporaryDirectory(prefix='zero-racers-release-', dir=args.out) as
         'own extracted Zero Racers .vb cartridge, and press Play. No ROM included.\n'
         f'Optional color: in Mods, install {mod.name}, then enable Wireframe color.\n'
         'Color is OFF by default. Disable it to restore native red.\n'
+        'Multiplayer: enable Multiplayer (2-4 players) on Mods before launching.\n'
+        'The bundled Multiplayer package is installed but OFF by default.\n'
         'Keyboard: arrows, WASD, X/Z, Q/E, Enter/Right Shift. Escape: settings.\n'
         'Keep vbrecomp.cfg, saves/ and mods/ when updating. See README.md.\n')
     archive = args.out / ('ZeroRacersVirtualBoyRecomp-versus-review-windows-x64.zip' if args.review
@@ -155,6 +170,7 @@ with tempfile.TemporaryDirectory(prefix='zero-racers-release-', dir=args.out) as
                     raise SystemExit(f'Unexpected private/profile data in release: {source.name}')
                 z.write(source, source.relative_to(stage).as_posix())
 shutil.copy2(mod, args.out / mod.name)
+shutil.copy2(multi,args.out/multi.name)
 (args.out / 'SHA256SUMS.txt').write_text(''.join(
-    f'{sha(path)}  {path.name}\n' for path in (archive, args.out / mod.name)))
+    f'{sha(path)}  {path.name}\n' for path in (archive, args.out / mod.name,args.out/multi.name)))
 print(json.dumps({'archive': str(archive), 'bytes': archive.stat().st_size, **info}, indent=2))

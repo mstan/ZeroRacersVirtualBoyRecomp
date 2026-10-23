@@ -61,7 +61,7 @@ void title_pixel(unsigned x,unsigned y,unsigned raw,unsigned palette,unsigned in
     frame.levels[i]=level;
     auto& source=frame.sources[i];source={};source.kind=4;source.tile_hash=ink;source.raw=raw;
 }
-void title_versus(int eye,unsigned y,bool selected,unsigned palette) {
+void title_versus(int eye,unsigned y,bool selected,unsigned palette,unsigned arrow_palette) {
     // V/S are the two missing letters in the title's baked word artwork.
     // Match its 8x16 condensed stems and two-level beveled shading; the other
     // four letters and selection arrows are the cartridge's actual pixels.
@@ -83,8 +83,8 @@ void title_versus(int eye,unsigned y,bool selected,unsigned palette) {
         title_pixel(206+x,y+row,title_texel(eye,210+x,168+row),palette,2);
         title_pixel(215+x,y+row,title_texel(eye,174+x,168+row),palette,2);
         if(selected) {
-            title_pixel(145+x,y+row,title_texel(eye,132+x,96+row),palette,4);
-            title_pixel(231+x,y+row,title_texel(eye,242+x,96+row),palette,4);
+            title_pixel(145+x,y+row,title_texel(eye,132+x,96+row),arrow_palette,4);
+            title_pixel(231+x,y+row,title_texel(eye,242+x,96+row),arrow_palette,4);
         }
     }
 }
@@ -143,8 +143,12 @@ bool draw(const ZrSessionState& session,const std::array<ZrCameraState,4>& camer
     std::snprintf(label,sizeof(label),"%03u KM/H",std::min(display_speed,999u));text(frame,280,200,label,3);
     std::snprintf(label,sizeof(label),"POWER %03u",800-std::min(800u,word(body+0x38)));text(frame,8,200,label,7);
     if(session.phase==ZrRacePhase::Countdown) {
-        std::snprintf(label,sizeof(label),"%u",(session.countdown+49)/50);text(frame,184,72,label,4);
+        const unsigned elapsed=ZrCountdownFields-session.countdown;
+        if(elapsed>=ZrCountdownBeat && elapsed%ZrCountdownBeat<ZrCountdownVisible) {
+            std::snprintf(label,sizeof(label),"%u",4-elapsed/ZrCountdownBeat);text(frame,184,72,label,4);
+        }
     }
+    if(session.phase==ZrRacePhase::Racing && session.race_fields<ZrCountdownVisible)text(frame,176,72,"GO!",4);
     if(session.result[seat].status!=ZrRacerStatus::Racing)text(frame,144,64,status(session.result[seat].status),4);
     if(session.menu_mask&(1u<<seat)) {
         text(frame,112,96,"RACE CONTINUES",4);text(frame,112,112,"START  RESUME");text(frame,112,128,"SELECT  RETIRE");
@@ -167,25 +171,24 @@ int ZrVideoMenu(const ZrMenuState& menu,int eye,uint32_t* out) {
     if(menu.screen==1) {
         vb_renderer_present(eye,out);
         std::copy_n(out,VB_RENDER_PIXELS,pane.data());
-        // Use the palette which actually drew the displayed text. Live GPLT
-        // registers can already belong to the next blink/draw phase.
-        vb_vip_copy_levels(eye,frame.levels.data());
-        const auto* native=vb_vip_source_buffer(eye);
-        unsigned palette=0xe4;
-        for(unsigned y=144;y<160;++y)for(unsigned x=167;x<175;++x) {
-            const unsigned i=y*384+x,raw=native[i].raw;
-            if(raw)palette=(palette&~(3u<<(raw*2)))|(unsigned(frame.levels[i])<<(raw*2));
-        }
-        frame.levels.fill(0);
+        // The cartridge alternates the selected word's map cells between
+        // GPLT1 and GPLT0 every eight menu iterations (21F7A..22014).
+        // Use those stable palettes with VS's own selection/phase; borrowing
+        // the displayed TIME TRIAL pixels couples VS to that word's blink.
+        const unsigned normal=vb_vip_read16(0x5f860);
+        const unsigned selected=vb_vip_read16(0x5f862);
         // Five native-height rows fit between the logo and copyright with a
         // six-pixel gap. Preserve the original artwork and selected-row blink.
         std::fill(out+88*384,out+204*384,0xff000000u);
         for(unsigned row=0;row<4;++row)for(unsigned y=0;y<16;++y)
             for(unsigned x=0;x<384;++x) {
-                if(menu.highlight && row==3 && (x<160 || x>=224))continue;
+                if(menu.highlight && row==3)continue;
                 out[(92+row*22+y)*384+x]=pane[(96+row*24+y)*384+x];
             }
-        title_versus(eye,180,menu.highlight!=0,palette);
+        if(menu.highlight)for(unsigned y=0;y<16;++y)for(unsigned x=160;x<224;++x)
+            title_pixel(x,158+y,title_texel(eye,x,168+y),normal,2);
+        title_versus(eye,180,menu.highlight!=0,
+                     menu.highlight && menu.title_phase<8?selected:normal,normal);
     } else {
         std::fill_n(out,VB_RENDER_PIXELS,0xff000000u);text(frame,152,16,"VS MODE",4);
         char label[64];

@@ -15,6 +15,7 @@ from pathlib import Path
 import sys
 import time
 import traceback
+from versus_test_mod import versus_mod_args
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -100,6 +101,7 @@ def main():
             save=folder/'protected-native.sav';native=bytes((i*29+7+slot)&255 for i in range(65536));save.write_bytes(native)
             saves.append((save,native));extra+=['--save',save.as_posix()]
             extra+=['--state-file',(folder/'quick.state').as_posix()]
+            extra+=versus_mod_args(a.runtime)
             if a.color_package:extra+=['--install-mod',a.color_package.resolve().as_posix(),'--enable-mod','zero-racers.full-color:full-color']
             settings={'RNET_SIM_LATENCY_MS':str(a.latency_ms),'RNET_SIM_JITTER_MS':str(a.jitter_ms),
                       'RNET_SIM_LOSS_PCT':str(a.loss_pct),'RNET_SIM_SEED':str(91231+slot),

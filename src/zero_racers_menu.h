@@ -8,6 +8,7 @@ struct ZrMenuState {
     std::array<unsigned,4> machines{0,1,2,3};
     uint32_t ready_mask=0,pending_launch=0,native_launch=0;
     std::array<uint32_t,4> previous{};
+    uint32_t title_phase=0;
 };
 bool ZrMenuValidate(const ZrMenuState&);
 void ZrMenuStep(ZrMenuState&,const std::array<uint16_t,4>&,unsigned authority=0,bool fixed_players=false,bool allow_back=true);

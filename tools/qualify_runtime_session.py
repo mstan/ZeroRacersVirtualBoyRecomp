@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import sys
 from PIL import Image
+from versus_test_mod import versus_mod_args
 
 
 def main():
@@ -30,6 +31,7 @@ def main():
             native_save.write_bytes(native_bytes)
             extra=['--versus',str(a.players),'--versus-course','11','--save',native_save.as_posix(),
                    '--rewind-frames','16','--rewind-interval','1','--versus-video-cache',str(a.video_cache)]
+            extra+=versus_mod_args(a.runtime)
             if a.color_package:
                 extra+=['--install-mod',a.color_package.resolve().as_posix(),'--enable-mod','zero-racers.full-color:full-color']
             with Runner(a.runtime,a.rom,mode,a.port,folder/'profile',extra=extra) as r:
