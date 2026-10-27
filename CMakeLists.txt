@@ -43,6 +43,15 @@ add_library(zero-racers-routine STATIC src/zero_racers_routine.cpp src/zero_race
 target_include_directories(zero-racers-routine PUBLIC src "${VBRECOMP_ROOT}/runtime/include")
 target_compile_features(zero-racers-routine PUBLIC cxx_std_17)
 if(BUILD_TESTING)
+    add_executable(zero-racers-material-colors-test tests/material_colors_test.cpp)
+    target_include_directories(zero-racers-material-colors-test PRIVATE src)
+    target_compile_features(zero-racers-material-colors-test PRIVATE cxx_std_17)
+    if(MSVC)
+        target_compile_options(zero-racers-material-colors-test PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(zero-racers-material-colors-test PRIVATE -UNDEBUG)
+    endif()
+    add_test(NAME zero-racers-material-colors COMMAND zero-racers-material-colors-test)
     set(_zr_test_core
         "${VBRECOMP_ROOT}/runtime/src/v810_interpreter.c"
         "${VBRECOMP_ROOT}/runtime/src/v810_extended.c"
@@ -84,7 +93,7 @@ set_target_properties(vb-runtime PROPERTIES OUTPUT_NAME ZeroRacersVirtualBoyReco
 target_sources(vb-runtime PRIVATE src/zero_racers_color.cpp src/zero_racers_host.cpp src/zero_racers_video.cpp)
 target_compile_definitions(vb-runtime PRIVATE VB_SIMULATION_POINTS=1)
 target_link_libraries(vb-runtime PRIVATE zero-racers-routine)
-vb_state_add_identity(vb-runtime src/zero_racers_color.cpp src/zero_racers_host.cpp
+vb_state_add_identity(vb-runtime src/zero_racers_color.cpp src/material_colors.h src/zero_racers_host.cpp
     src/zero_racers_routine.h src/zero_racers_routine.cpp src/zero_racers_actor.h src/zero_racers_actor.cpp
     src/zero_racers_bus.h src/zero_racers_bus.cpp src/zero_racers_world.h src/zero_racers_world.cpp
     src/zero_racers_camera.h src/zero_racers_camera.cpp src/zero_racers_session.h src/zero_racers_session.cpp

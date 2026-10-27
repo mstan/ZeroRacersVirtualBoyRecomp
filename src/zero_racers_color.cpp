@@ -5,6 +5,7 @@
 #include "cpu_state.h"
 #include "savestate.h"
 #include "stub_abort.h"
+#include "material_colors.h"
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -23,6 +24,7 @@ std::array<uint32_t, 514> edge_tags{};
 std::array<uint32_t, 1026> line_tags{};
 using Mask = std::array<uint8_t, 64>;
 std::unordered_map<uint64_t, Mask> materials;
+zr_color::PreparedColors<InkCount> prepared;
 
 uint64_t material_key(unsigned map, unsigned kind, unsigned x, unsigned y, uint32_t hash) {
     return hash | (uint64_t(x) << 32) | (uint64_t(y) << 42)
@@ -110,21 +112,13 @@ void render(const VbRenderFrame* frame, uint32_t* out, void*) {
                 ? model_inks[tag - ModelTag] : tag > Original && tag < InkCount ? tag : Track;
         }
         else if (source.world && source.kind <= 3) {
-            auto found = materials.find(material_key(source.map, source.kind,
-                source.x / 8, source.y / 8, source.tile_hash));
-            if (found != materials.end() && found->second[source.v * 8 + source.u])
-                ink = found->second[source.v * 8 + source.u];
+            const auto* mask = prepared.material(material_key(source.map, source.kind,
+                source.x / 8, source.y / 8, source.tile_hash),materials);
+            if (mask && (*mask)[source.v * 8 + source.u])
+                ink = (*mask)[source.v * 8 + source.u];
             if (race) ink = hud_ink(source, ink);
         }
-        if (ink == Original || ink >= InkCount) continue;
-        const unsigned rgb = palette[ink];
-        const unsigned r = (rgb >> 16) & 255, g = (rgb >> 8) & 255, b = rgb & 255;
-        const unsigned peak = std::max({r, g, b});
-        if (!peak) continue;
-        // Normalize hue so the native intensity remains the maximum channel.
-        // Even the dimmest visible line stays visible with custom palettes.
-        out[i] = 0xff000000u | ((r * light / peak) << 16)
-            | ((g * light / peak) << 8) | (b * light / peak);
+        prepared.apply(ink,uint8_t(light),out[i]);
     }
 }
 
@@ -166,6 +160,7 @@ void activate() {
             if (valid) materials[material_key(map, kind, x, y, hash)] = values;
         }
     }
+    prepared.rebuild(palette);
     vb_renderer_register("zero-racers.full-color", render, nullptr);
 }
 
