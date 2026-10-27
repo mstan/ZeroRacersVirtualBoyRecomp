@@ -11,6 +11,9 @@ Built with [vbrecomp](https://github.com/mstan/vbrecomp) and
 
 *Screenshots show the optional color mod. Original red graphics are the default.*
 
+Version **0.1.1** reduces color, memory-access and rewind overhead while
+preserving the existing gameplay and optional multiplayer features.
+
 - Play with a keyboard or controller, with customizable controls.
 - Adjust fullscreen, window size, filtering and audio through recomp-ui.
 - Keep your progress with persistent saves and settings.
