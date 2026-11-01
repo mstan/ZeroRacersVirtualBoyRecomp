@@ -1,5 +1,9 @@
 # Zero Racers Recompiled
 
+New settings default to **4x internal resolution**. Existing saved settings keep
+your choices. Enhanced internal resolution currently applies to stock graphics;
+optional color presentation retains native resolution.
+
 A recompilation of **Zero Racers** for Virtual Boy, playable on Windows.
 Built with [vbrecomp](https://github.com/mstan/vbrecomp) and
 [recomp-ui](https://github.com/mstan/recomp-ui).

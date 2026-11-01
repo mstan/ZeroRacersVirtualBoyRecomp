@@ -82,6 +82,7 @@ info = {'version': (ROOT / 'VERSION').read_text().strip(),
                           else 'Release, recomp-ui, hybrid fallback, TCP/CPU trace disabled'),
         'netplay': net_enabled, 'ice': ice_enabled,
         'executable_sha256': sha(exe),
+        'default_internal_resolution': 4,
         'default_color_enabled': False,
         'optional_mod': {'file': mod.name, 'id': manifest['id'],
                          'version': manifest['version'], 'sha256': sha(mod)}}
@@ -159,6 +160,7 @@ with tempfile.TemporaryDirectory(prefix='zero-racers-release-', dir=args.out) as
         'Color is OFF by default. Disable it to restore native red.\n'
         'Multiplayer: enable Multiplayer / VS (Experimental) on Mods before launching.\n'
         'The bundled Multiplayer package is installed but OFF by default.\n'
+        'New settings default to 4x internal resolution; existing choices are preserved.\n'
         'Keyboard: arrows, WASD, X/Z, Q/E, Enter/Right Shift. Escape: settings.\n'
         'Keep vbrecomp.cfg, saves/ and mods/ when updating. See README.md.\n')
     archive = args.out / ('ZeroRacersVirtualBoyRecomp-versus-review-windows-x64.zip' if args.review

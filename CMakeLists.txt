@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ZeroRacersVirtualBoyRecomp VERSION 0.1.1 LANGUAGES C CXX)
+project(ZeroRacersVirtualBoyRecomp VERSION 0.1.2 LANGUAGES C CXX)
 include(CTest)
 set(VBRECOMP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vbrecomp" CACHE PATH "vbrecomp checkout")
 set(RECOMP_UI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/recomp-ui" CACHE PATH "recomp-ui checkout")
@@ -84,6 +84,7 @@ if(BUILD_TESTING)
     endif()
 endif()
 target_compile_definitions(vb-runtime PRIVATE
+    VB_GAME_DEFAULT_INTERNAL_SCALE=4
     VB_GAME_LOCAL_PLAYERS=4
     VB_GAME_ID="zero-racers"
     VB_GAME_TITLE="Zero Racers Recompiled"
